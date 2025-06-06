@@ -1,0 +1,4 @@
+<resources>
+
+    <style name="Theme.Maatcoreandroidtv" parent="Theme.AppCompat.DayNight.NoActionBar" />
+</resources>

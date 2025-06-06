@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">MaatCore Android TV</string>
+
+    <string name="menu_maattv">Maât.TV</string>
+    <string name="menu_maatflix">MaâtFlix</string>
+    <string name="menu_maatcare">MaâtCare</string>
+    <string name="menu_maatclass">MaâtClass</string>
+    <string name="menu_maatfoot">MaâtFoot</string>
+
+    <string name="logo_maatcore">MAATCORE</string>
+    <string name="featured_movie_subtitle_example">The untold story of a powerful queen</string>
+    <string name="watch_button">Regarder</string>
+    <string name="discover_button">Découvrir</string>
+    <string name="movies_section_title_news">Nouveautés</string>
+    <string name="content_description_menu">Menu</string>
+    <string name="content_description_movie_poster">%1$s poster</string>
+    <string name="content_description_featured_background">Featured content background</string>
+
+    <!-- Routes de navigation (juste pour exemple, adaptez) -->
+    <string name="route_maattv">maattv_screen</string>
+    <string name="route_maatflix">maatflix_screen</string>
+    <string name="route_maatcare">maatcare_screen</string>
+    <string name="route_maatclass">maatclass_screen</string>
+    <string name="route_maatfoot">maatfoot_screen</string>
+    <string name="route_movie_detail_template">movie_detail/{movieId}</string>
+
+</resources>

@@ -1,668 +1,370 @@
 package ai.maatcore.maatcore_android_tv.ui.screens
 
-import android.util.Log
+// Imports existants...
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text // Assurez-vous que cet import est là si vous l'utilisez
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController // Import NavHostController
+import androidx.compose.material3.Card // Use standard Material3 Card
+import androidx.compose.material3.MaterialTheme // Use standard Material3 Theme
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.focusable
-// import androidx.compose.ui.res.fontResource // Pas nécessaire si FontFamily est bien défini
-import androidx.compose.ui.text.TextStyle
+import androidx.navigation.compose.currentBackStackEntryAsState // Import for observing current route
+import androidx.compose.foundation.background // Import background modifier
 
 import ai.maatcore.maatcore_android_tv.R
+import ai.maatcore.maatcore_android_tv.ui.components.MaatBrandHeader
+import ai.maatcore.maatcore_android_tv.ui.components.MenuVertical
+import ai.maatcore.maatcore_android_tv.ui.components.DynamicHeader // Import DynamicHeader
+import ai.maatcore.maatcore_android_tv.ui.components.HeaderContent // Import HeaderContent
+import ai.maatcore.maatcore_android_tv.ui.theme.MontserratFamily
+import ai.maatcore.maatcore_android_tv.ui.theme.PoppinsFamily
+import ai.maatcore.maatcore_android_tv.ui.theme.InterFamily
+import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorNoirProfond // Import MaatColorNoirProfond
 
-import androidx.tv.material3.Button
-import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.Card
-import androidx.tv.material3.CardDefaults
-import androidx.tv.material3.DrawerValue
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Icon
-import androidx.tv.material3.IconButton
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.ModalNavigationDrawer
-import androidx.tv.material3.Text
-import androidx.tv.material3.rememberDrawerState
-import androidx.tv.foundation.ExperimentalTvFoundationApi
-import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.TvLazyRow
-import androidx.tv.foundation.lazy.list.items
-
-import kotlinx.coroutines.launch
-
-// --- Data Classes and Color Constants ---
-val tvBackgroundColor = Color(0xFF0D0D0D)
-val tvPrimaryColor = Color(0xFFF5D487)
-val tvButtonColor = Color(0xFFE0C28A)
-val tvAccentOrange = Color(0xFFFF8C42)
-
-// Définition de la famille de polices Proxima Nova
-// ASSUREZ-VOUS QUE CES NOMS CORRESPONDENT EXACTEMENT À VOS FICHIERS RENOMMÉS DANS res/font/
-val ProximaNova = FontFamily(
-    Font(R.font.proxima_nova_regular, FontWeight.Normal),
-    Font(R.font.proxima_nova_semibold, FontWeight.SemiBold)
-)
-
-
-data class MenuItem(
-    val id: String,
-    val title: String,
-    val icon: Int? = null
-)
-
-data class ContentItem(
-    val id: String,
-    val title: String,
-    val imageUrl: String,
-    val description: String = "",
-    val videoUrl: String = ""
-)
-
-data class ContentRow(
-    val id: String,
-    val title: String,
-    val items: List<ContentItem>
-)
-
-data class FeaturedContent(
-    val id: String,
-    val title: String,
-    val tagline: String,
-    val imageUrl: String,
-    val videoUrl: String = ""
-)
-
-// --- Composable Functions ---
+// Modèles de données (simplifiés, adaptez les vôtres)
+data class Movie(val id: String, val title: String, val director: String, val imageRes: Int, val category: String)
+data class MaatService(val id: String, val name: String, val imageRes: Int)
+data class FeaturedContent(val id: String, val title: String, val description: String, val imageRes: Int)
 
 @Composable
-fun painterResourceFromString(imageName: String?): Painter {
-    if (imageName == "maat_logo") return painterResource(id = R.drawable.maat_logo)
-    if (imageName == "maat_header") return painterResource(id = R.drawable.maat_header)
-    if (imageName == "maat_care") return painterResource(id = R.drawable.maat_care)
-    if (imageName == "maat_tv") return painterResource(id = R.drawable.maat_tv)
-    if (imageName == "maat_class") return painterResource(id = R.drawable.maat_class)
-    if (imageName == "maat_foot") return painterResource(id = R.drawable.maat_foot)
-    if (imageName == "maat_flix") return painterResource(id = R.drawable.maat_flix)
-    if (imageName == "content_placeholder") return painterResource(id = R.drawable.content_placeholder)
+fun HomeScreen(navController: NavHostController) {
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: "home"
 
-
-    val context = LocalContext.current
-    val resourceId = remember(imageName) {
-        if (imageName.isNullOrBlank()) {
-            0
-        } else {
-            val cleanName = imageName
-                .substringAfterLast('/')
-                .substringBeforeLast('.')
-                .lowercase()
-                .replace("[^a-z0-9_]".toRegex(), "_")
-            val id = context.resources.getIdentifier(cleanName, "drawable", context.packageName)
-            if (id == 0) {
-                Log.w("PainterResource", "Resource not found for imageName: $imageName (cleaned: $cleanName). Using placeholder.")
-            }
-            id
-        }
-    }
-    return if (resourceId != 0) {
-        painterResource(id = resourceId)
-    } else {
-        painterResource(id = R.drawable.content_placeholder)
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-fun MaatTvAppScreen(onNavigate: (String) -> Unit) {
-    MaterialTheme {
-        AndroidTVHomeScreen(onNavigate = onNavigate)
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalTvFoundationApi::class)
-@Composable
-fun AndroidTVHomeScreen(
-    onNavigate: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val menuItems = listOf(
-        MenuItem("maattv", "Maat.TV", R.drawable.ic_tv),
-        MenuItem("maatflix", "MaâtFlix", R.drawable.ic_movie),
-        MenuItem("maatcare", "MaâtCare", R.drawable.ic_health),
-        MenuItem("maatclass", "MaâtClass", R.drawable.ic_education),
-        MenuItem("maatfoot", "MaâtFoot", R.drawable.ic_sports)
+    // Données exemples avec placeholders - Mise à jour pour correspondre à l'image
+    val trendingMovies = listOf(
+        Movie("1", "OPPENHEIMER", "Christopher Nolan", R.drawable.placeholder_image, "Action"),
+        Movie("2", "AVATAR", "James Cameron", R.drawable.placeholder_image, "Science-Fiction"),
+        Movie("3", "JOHN WICK", "Chad Stahelski", R.drawable.placeholder_image, "Action"),
+        Movie("4", "EQUALIZER 3", "Antoine Fuqua", R.drawable.placeholder_image, "Action"),
+        Movie("5", "CREED III", "Michael B. Jordan", R.drawable.placeholder_image, "Drame"),
+        Movie("6", "MaätCare", "", R.drawable.maat_care, "Service")
     )
 
-    val featuredContent = FeaturedContent(
-        id = "queen_of_maat",
-        title = "Reine de Maât",
-        tagline = "L'histoire inédite d'une reine puissante",
-        imageUrl = "maat_header",
-        videoUrl = "https://example.com/video1"
+    // Menu vertical avec icônes dorées comme dans l'image
+    val maatServices = listOf(
+        MaatService("1", "Maât.TV", R.drawable.maat_tv),
+        MaatService("2", "MaâtFlix", R.drawable.maat_flix),
+        MaatService("3", "MaâtCare", R.drawable.maat_care),
+        MaatService("4", "MaâtClass", R.drawable.maat_class),
+        MaatService("5", "MaâtFoot", R.drawable.maat_foot)
     )
 
-    val contentRows = listOf(
-        ContentRow(
-            id = "categories_services",
-            title = "Nos Services",
-            items = listOf(
-                ContentItem("service_maat_header", "Bannière Maât", "maat_header"),
-                ContentItem("service_maat_care", "Service MaâtCare", "maat_care"),
-                ContentItem("service_maat_tv", "Service Maât.TV", "maat_tv"),
-                ContentItem("original_maat_tv", "Maât.TV (Image Normale)", "maat_tv"),
-                ContentItem("original_maat_care", "MaâtCare (Image Normale)", "maat_care"),
-                ContentItem("maat_class", "MaâtClass", "maat_class"),
-                ContentItem("maat_foot", "MaâtFoot", "maat_foot"),
-                ContentItem("maat_flix", "MaâtFlix", "maat_flix")
-            )
-        ),
-        ContentRow(
-            id = "nouveautes",
-            title = "Nouveautés",
-            items = listOf(
-                ContentItem("item_1", "Contenu 1", "content_placeholder"),
-                ContentItem("item_2", "Contenu 2", "content_placeholder"),
-                ContentItem("item_3", "Contenu 3", "content_placeholder"),
-                ContentItem("item_4", "Contenu 4", "content_placeholder"),
-                ContentItem("item_5", "Contenu 5", "content_placeholder")
-            )
-        )
+    val featuredItem = FeaturedContent(
+        "1",
+        "QUEEN OF MAÄT",
+        "The untold story of powerful queen",
+        R.drawable.maat_header
     )
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    Row(modifier = Modifier.fillMaxSize()) {
+        MenuVertical(navController = navController, currentRoute = currentRoute)
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(tvBackgroundColor)
-    ) {
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            modifier = Modifier.windowInsetsPadding(WindowInsets(0.dp)),
-            drawerContent = {
-                ModalDrawerSheet(
-                    drawerContainerColor = Color.Transparent,
-                    modifier = Modifier.width(260.dp).fillMaxHeight()
-                ) {
-                    SideMenu(
-                        menuItems = menuItems,
-                        onMenuItemClick = { menuItem ->
-                            scope.launch {
-                                drawerState.setValue(DrawerValue.Closed)
-                            }
-                            onNavigate(menuItem.id)
-                        },
-                        backgroundColor = tvBackgroundColor
-                    )
-                }
-            }
-        ) {
-            MaatTVHomeContent(
-                featuredContent = featuredContent,
-                contentRows = contentRows,
-                onOpenMenu = {
-                    scope.launch {
-                        drawerState.setValue(DrawerValue.Open)
-                    }
-                },
-                onContentClick = { contentItem ->
-                    onNavigate("details/${contentItem.id}")
-                }
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-fun SideMenu(
-    menuItems: List<MenuItem>,
-    onMenuItemClick: (MenuItem) -> Unit,
-    modifier: Modifier = Modifier,
-    backgroundColor: Color
-) {
-    val titleOriginalBottomPadding = 48.dp
-    val itemOriginalVerticalPadding = 12.dp
-
-    val itemFontSize = 16.sp
-    val titleBottomPadding = titleOriginalBottomPadding * 0.6f
-    val itemVerticalPadding = itemOriginalVerticalPadding * 0.6f
-
-
-    Column(
-        modifier = modifier
-            .width(260.dp)
-            .fillMaxHeight()
-            .background(backgroundColor)
-            .padding(vertical = 48.dp, horizontal = 16.dp)
-    ) {
-        Image(
-            painter = painterResourceFromString("maat_logo"),
-            contentDescription = "Logo MaâtCore",
-            modifier = Modifier
-                .height(60.dp)
-                .fillMaxWidth()
-                .padding(bottom = titleBottomPadding)
-        )
-
-        menuItems.forEach { menuItem ->
-            Card(
-                onClick = { onMenuItemClick(menuItem) },
-                colors = CardDefaults.colors(
-                    containerColor = Color.Transparent,
-                    focusedContainerColor = tvAccentOrange.copy(alpha = 0.2f)
+        Column(modifier = Modifier.fillMaxSize().background(MaatColorNoirProfond)) { // Set background to deep black
+            // Dynamic Header for HomeScreen - Title removed as it's already in the image
+            DynamicHeader(
+                content = HeaderContent(
+                    title = "", // Removed title as it's already in the image
+                    subtitle = featuredItem.description,
+                    imageUrl = "", // Not used as we are using local drawable
+                    imageRes = featuredItem.imageRes, // Using the featured content image
+                    actionText = "Regarder",
+                    onAction = { /* TODO: Action for featured content */ }
                 ),
-                shape = CardDefaults.shape(RectangleShape),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = itemVerticalPadding)
-                    .focusable()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // All content sections directly within this Column
+            // Section Nouveautés (comme dans l'image)
+            Text(
+                "Nouveautés",
+                fontSize = 20.sp,
+                fontFamily = PoppinsFamily,
+                color = Color(0xFFD4AF37), // Couleur dorée comme dans l'image
+                modifier = Modifier.padding(start = 16.dp) // Removed bottom padding
+            )
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) { // Wrap LazyRow in a Column for padding
+                val movieListState = rememberLazyListState() // Pour conserver la position au retour
+                
+                LazyRow(
+                    state = movieListState,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(end = 48.dp) // Marge de sécurité pour l'overscan TV
                 ) {
-                    menuItem.icon?.let {
-                        Icon(
-                            painter = painterResource(id = it),
-                            contentDescription = menuItem.title,
-                            tint = tvPrimaryColor,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
+                    items(trendingMovies) { movie ->
+                        MovieCard(movie = movie) // Afficher les films dans la section Nouveautés
                     }
-                    Text(
-                        text = menuItem.title,
-                        style = TextStyle(
-                            color = tvPrimaryColor,
-                            fontSize = itemFontSize,
-                            fontFamily = ProximaNova, // Application de Proxima Nova
-                            fontWeight = FontWeight.Normal // ou FontWeight.SemiBold si votre Proxima Nova le supporte pour ce poids
-                        )
-                    )
                 }
             }
-        }
-    }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Section Catégories Principales (comme dans l'image)
+            Text(
+                "Catégories Principales",
+                fontSize = 20.sp,
+                fontFamily = PoppinsFamily,
+                color = Color(0xFFD4AF37), // Couleur dorée comme dans l'image
+                modifier = Modifier.padding(start = 16.dp) // Removed bottom padding
+            )
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) { // Wrap LazyRow in a Column for padding
+                val serviceListState = rememberLazyListState() // Pour conserver la position au retour
+                
+                LazyRow(
+                    state = serviceListState,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(end = 48.dp) // Marge de sécurité pour l'overscan TV
+                ) {
+                    items(maatServices) { service ->
+                        ServiceCard(service = service) // Afficher les services comme catégories
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Section Contenu à la Une
+            Text(
+                "À la Une",
+                fontSize = 20.sp,
+                fontFamily = PoppinsFamily,
+                modifier = Modifier.padding(start = 16.dp) // Removed bottom padding
+            )
+            FeaturedCard(featuredItem)
+
+            // ... autres sections ...
+            // Exemple d'utilisation d'InterFamily
+            Text(
+                "Texte informatif en Inter.",
+                fontFamily = InterFamily,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp) // Apply padding here
+            )
+        } // Closing brace for the single content Column
+    } // Closing brace for the Row
 }
 
-@OptIn(ExperimentalTvFoundationApi::class, ExperimentalTvMaterial3Api::class)
 @Composable
-fun MaatTVHomeContent(
-    featuredContent: FeaturedContent,
-    contentRows: List<ContentRow>,
-    onOpenMenu: () -> Unit,
-    onContentClick: (ContentItem) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val localDensity = LocalDensity.current
-
-    Box(
-        modifier = modifier.fillMaxSize()
+fun MovieCard(movie: Movie, modifier: Modifier = Modifier) {
+    var isFocused by remember { mutableStateOf(false) }
+    
+    // Animation de scale pour l'effet de focus
+    val scale by animateFloatAsState(
+        targetValue = if (isFocused) 1.1f else 1.0f,
+        animationSpec = tween(durationMillis = 200)
+    )
+    
+    // Animation de l'élévation pour l'effet de focus
+    val elevation by animateDpAsState(
+        targetValue = if (isFocused) 16.dp else 4.dp,
+        animationSpec = tween(durationMillis = 200)
+    )
+    
+    // Animation de la bordure pour l'effet de focus
+    val borderWidth by animateDpAsState(
+        targetValue = if (isFocused) 2.dp else 0.dp,
+        animationSpec = tween(durationMillis = 200)
+    )
+    
+    Card(
+        onClick = { /* Naviguer vers les détails du film */ },
+        modifier = modifier
+            .width(150.dp)
+            .height(220.dp)
+            .scale(scale)
+            .graphicsLayer {
+                shadowElevation = elevation.toPx()
+            }
+            .onFocusChanged { isFocused = it.isFocused }
+            .focusable()
+            .zIndex(if (isFocused) 1f else 0f) // Mettre l'élément focusé au-dessus des autres
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-        ) {
-            val menuWidth = 260.dp
-            val gradientExtensionOriginal = 70.dp
-            val gradientExtensionNew = gradientExtensionOriginal * 0.8f
-            val totalGradientWidth = menuWidth + gradientExtensionNew
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .width(totalGradientWidth)
-                    .fillMaxHeight()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                tvBackgroundColor,
-                                tvBackgroundColor.copy(alpha = 0.92f),
-                                tvBackgroundColor.copy(alpha = 0.66f),
-                                tvBackgroundColor.copy(alpha = 0.33f),
-                                Color.Transparent
-                            ),
-                            startX = 0f,
-                            endX = with(localDensity) { totalGradientWidth.toPx() }
-                        )
-                    )
-            )
-
-            Image(
-                painter = painterResourceFromString(featuredContent.imageUrl),
-                contentDescription = featuredContent.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth(0.75f)
-                    .fillMaxHeight()
-                    .align(Alignment.TopEnd)
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Transparent,
-                                Color(0x77000000),
-                                Color(0xDD000000)
-                            ),
-                            startY = with(localDensity) { (400.dp * 0.3f).toPx() },
-                            endY = with(localDensity) { 400.dp.toPx() }
-                        )
-                    )
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .fillMaxHeight()
-                    .align(Alignment.TopEnd)
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Transparent,
-                                tvAccentOrange.copy(alpha = 0.05f),
-                                tvAccentOrange.copy(alpha = 0.1f)
-                            ),
-                            startX = with(localDensity) { (0.8f * 1920.dp.toPx()) * 0.5f },
-                            endX = with(localDensity) { (0.8f * 1920.dp.toPx()) }
-                        )
-                    )
-            )
-
-            FeaturedContentHeader(
-                featuredContent = featuredContent,
-                onOpenMenu = onOpenMenu,
-                onWatchClick = {
-                    onContentClick(
-                        ContentItem(
-                            id = featuredContent.id,
-                            title = featuredContent.title,
-                            imageUrl = featuredContent.imageUrl,
-                            videoUrl = featuredContent.videoUrl
-                        )
-                    )
-                }
-            )
-        }
-
-        TvLazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 350.dp),
-            contentPadding = PaddingValues(bottom = 48.dp)
-        ) {
-            items(contentRows) { row ->
-                ContentRowSection(
-                    rowTitle = row.title,
-                    contentItems = row.items,
-                    onContentClick = onContentClick
+        Column {
+            Box {
+                Image(
+                    painter = painterResource(id = movie.imageRes),
+                    contentDescription = "Film: ${movie.title} par ${movie.director}", // Description améliorée pour l'accessibilité
+                    modifier = Modifier
+                        .height(180.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+                    contentScale = ContentScale.Crop
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Bordure dorée quand focusé
+                if (isFocused) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(RoundedCornerShape(8.dp))
+                            .border(borderWidth, Color(0xFFD4AF37), RoundedCornerShape(8.dp))
+                    )
+                }
+                
+                // Titre en bas de l'image comme dans la maquette
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Color(0x80000000)) // Fond semi-transparent
+                        .padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = movie.title,
+                        modifier = Modifier.fillMaxWidth(),
+                        fontFamily = PoppinsFamily,
+                        fontSize = 14.sp,
+                        color = Color(0xFFD4AF37), // Texte doré comme dans l'image
+                        maxLines = 1,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun FeaturedContentHeader(
-    featuredContent: FeaturedContent,
-    onOpenMenu: () -> Unit,
-    onWatchClick: () -> Unit
-) {
-    val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(400.dp)
-            .padding(top = statusBarPadding)
+fun ServiceCard(service: MaatService, modifier: Modifier = Modifier) {
+    var isFocused by remember { mutableStateOf(false) }
+    
+    // Animation de scale pour l'effet de focus
+    val scale by animateFloatAsState(
+        targetValue = if (isFocused) 1.1f else 1.0f,
+        animationSpec = tween(durationMillis = 200)
+    )
+    
+    // Animation de l'élévation pour l'effet de focus
+    val elevation by animateDpAsState(
+        targetValue = if (isFocused) 16.dp else 4.dp,
+        animationSpec = tween(durationMillis = 200)
+    )
+    
+    // Animation de la luminosité pour l'effet de focus
+    val iconAlpha by animateFloatAsState(
+        targetValue = if (isFocused) 1.0f else 0.8f,
+        animationSpec = tween(durationMillis = 200)
+    )
+    
+    androidx.compose.material3.Card(
+        onClick = { /* Naviguer vers le service */ },
+        modifier = modifier
+            .size(120.dp)
+            .scale(scale)
+            .graphicsLayer {
+                shadowElevation = elevation.toPx()
+            }
+            .onFocusChanged { isFocused = it.isFocused }
+            .focusable()
+            .zIndex(if (isFocused) 1f else 0f) // Mettre l'élément focusé au-dessus des autres
     ) {
-        IconButton(
-            onClick = onOpenMenu,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 32.dp, top = 32.dp)
-                .focusable()
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_menu),
-                contentDescription = "Menu",
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
-        }
-
         Column(
             modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 260.dp + 48.dp, bottom = 48.dp, end = 48.dp)
-                .fillMaxWidth(0.45f)
+                .fillMaxSize()
+                .padding(8.dp)
+                .background(Color(0xFF1A1A1A)), // Fond noir comme dans l'image
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            /*
+            // Bordure dorée quand focusé
+            Box(
+                modifier = Modifier.size(70.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isFocused) {
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, Color(0xFFD4AF37), CircleShape)
+                    )
+                }
+                
+                Image(
+                    painter = painterResource(id = service.imageRes),
+                    contentDescription = "Service: ${service.name}", // Description améliorée pour l'accessibilité
+                    modifier = Modifier
+                        .size(60.dp)
+                        .alpha(iconAlpha),
+                    contentScale = ContentScale.Fit
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
             Text(
-                text = featuredContent.title,
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 38.sp,
-                    fontFamily = ProximaNova
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(bottom = 8.dp)
+                service.name,
+                fontFamily = PoppinsFamily,
+                fontSize = 14.sp,
+                color = if (isFocused) Color(0xFFD4AF37) else Color(0xFFBCA136), // Plus brillant quand focusé
+                textAlign = TextAlign.Center
             )
-            Text(
-                text = featuredContent.tagline,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Color.White.copy(alpha = 0.85f),
-                    fontSize = 18.sp,
-                    fontFamily = ProximaNova
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
-            */
+        }
+    }
+}
 
-            Button(
-                onClick = onWatchClick,
-                colors = ButtonDefaults.colors(
-                    containerColor = tvButtonColor,
-                    contentColor = Color(0xFF0D0D0D)
-                ),
+@Composable // Removed ExperimentalTvMaterial3Api
+fun FeaturedCard(content: FeaturedContent) {
+    androidx.compose.material3.Card( // Use standard Material3 Card
+        onClick = { /* Action */ },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+    ) {
+        Box {
+            Image(
+                painter = painterResource(id = content.imageRes),
+                contentDescription = content.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Column(
                 modifier = Modifier
-                    .height(48.dp)
-                    .widthIn(min = 160.dp)
-                    .focusable()
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
             ) {
                 Text(
-                    text = "Regarder",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp,
-                        fontFamily = ProximaNova,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalTvFoundationApi::class, ExperimentalTvMaterial3Api::class)
-@Composable
-fun ContentRowSection(
-    rowTitle: String,
-    contentItems: List<ContentItem>,
-    onContentClick: (ContentItem) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Text(
-            text = rowTitle,
-            style = MaterialTheme.typography.titleLarge.copy(
-                color = tvPrimaryColor,
-                fontWeight = FontWeight.SemiBold, // Vous pouvez utiliser ProximaNova ici aussi
-                fontSize = 28.sp,
-                fontFamily = ProximaNova
-            ),
-            modifier = Modifier.padding(start = 48.dp, bottom = 12.dp)
-        )
-
-        TvLazyRow(
-            contentPadding = PaddingValues(horizontal = 48.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(contentItems) { item ->
-                ContentCard(
-                    contentItem = item,
-                    onClick = { onContentClick(item) }
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
-fun ContentCard(
-    contentItem: ContentItem,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val cardWidth = 100.dp
-    val cardHeight = 150.dp
-
-    Card(
-        onClick = onClick,
-        colors = CardDefaults.colors(
-            containerColor = Color.Transparent,
-            focusedContainerColor = tvAccentOrange.copy(alpha = 0.2f),
-            pressedContainerColor = tvAccentOrange.copy(alpha = 0.3f)
-        ),
-        shape = CardDefaults.shape(RectangleShape),
-        modifier = modifier
-            .width(cardWidth)
-            .height(cardHeight)
-            .focusable()
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Image(
-                painter = painterResourceFromString(contentItem.imageUrl),
-                contentDescription = contentItem.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            /*
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.4f)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xA0000000))
-                        )
-                    )
-            )
-            Text(
-                text = contentItem.title,
-                style = MaterialTheme.typography.labelMedium.copy(
+                    content.title,
                     color = Color.White,
-                    fontSize = 12.sp,
-                    fontFamily = ProximaNova
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 4.dp, vertical = 6.dp)
-                    .fillMaxWidth()
-            )
-            */
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = MontserratFamily
+                )
+                Text(
+                    content.description,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontFamily = InterFamily,
+                    maxLines = 2
+                )
+            }
         }
-    }
-}
-
-// --- Previews ---
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Preview(
-    name = "Full Screen Home",
-    device = "id:tv_1080p",
-    showBackground = true,
-    backgroundColor = 0xFF000000,
-    showSystemUi = true
-)
-@Composable
-fun AndroidTVHomeScreenFullScreenPreview() {
-    MaterialTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            AndroidTVHomeScreen(onNavigate = {})
-        }
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Preview(device = "id:tv_1080p", showBackground = true, backgroundColor = 0xFF101010, widthDp = 100, heightDp = 150)
-@Composable
-fun ContentCardPreview() {
-    MaterialTheme {
-        ContentCard(
-            contentItem = ContentItem("prev_card", "Titre Court", "content_placeholder"),
-            onClick = {}
-        )
-    }
-}
-
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Preview(device = "id:tv_1080p", showBackground = true, backgroundColor = 0xFF000000, widthDp = 260, heightDp = 720)
-@Composable
-fun SideMenuPreview() {
-    MaterialTheme {
-        SideMenu(
-            menuItems = listOf(
-                MenuItem("maattv", "Maât.TV", R.drawable.ic_tv),
-                MenuItem("maatflix", "MaâtFlix", R.drawable.ic_movie),
-                MenuItem("maatcare", "MaâtCare", R.drawable.ic_health)
-            ),
-            onMenuItemClick = {},
-            backgroundColor = tvBackgroundColor
-        )
     }
 }

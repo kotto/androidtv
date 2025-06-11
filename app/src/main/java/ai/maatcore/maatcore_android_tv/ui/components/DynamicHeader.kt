@@ -3,11 +3,9 @@ package ai.maatcore.maatcore_android_tv.ui.components
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-// import androidx.compose.foundation.shape.RoundedCornerShape // Not used
-import androidx.compose.material3.Button // M3 Button
-import androidx.compose.material3.ButtonDefaults // M3 ButtonDefaults
-import androidx.compose.material3.Text // M3 Text
-// import androidx.compose.material.* // Removed M2 wildcard import
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,12 +17,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import androidx.compose.foundation.Image // Import Image
+import androidx.compose.ui.res.painterResource // Import painterResource
+import ai.maatcore.maatcore_android_tv.R // Import R for drawable resources
+import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorOrSable // Import MaatColorOrSable
 
 data class HeaderContent(
     val title: String,
     val subtitle: String,
-    val imageUrl: String,
+    val imageUrl: String, // This will now be ignored if using local drawable
+    val imageRes: Int? = null, // Optional resource ID for local drawable
     val actionText: String = "Regarder",
     val onAction: () -> Unit = {}
 )
@@ -45,9 +47,9 @@ fun DynamicHeader(
                 .fillMaxWidth()
                 .height(400.dp)
         ) {
-            // Image de fond
-            AsyncImage(
-                model = headerContent.imageUrl,
+            // Image de fond - using custom image or default
+            Image(
+                painter = painterResource(id = content.imageRes ?: R.drawable.maat_header),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
@@ -61,8 +63,8 @@ fun DynamicHeader(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.3f),
-                                Color.Black.copy(alpha = 0.9f)
+                                Color.Black.copy(alpha = 0.5f), // Adjust middle alpha for smoother transition
+                                Color.Black // Fully opaque black at the bottom
                             ),
                             startY = 200f
                         )
@@ -92,7 +94,7 @@ fun DynamicHeader(
             ) {
                 Text(
                     text = headerContent.title,
-                    color = Color.White,
+                    color = MaatColorOrSable, // Changed to golden color
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -103,7 +105,7 @@ fun DynamicHeader(
                 
                 Text(
                     text = headerContent.subtitle,
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = MaatColorOrSable.copy(alpha = 0.9f), // Changed to golden color with alpha
                     fontSize = 18.sp,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
@@ -115,7 +117,7 @@ fun DynamicHeader(
                 Button(
                     onClick = headerContent.onAction,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFCB900) // Changed backgroundColor to containerColor for M3
+                        containerColor = Color(0xFFD4AF37) // Couleur dorée comme dans l'image
                     ),
                     modifier = Modifier.height(48.dp)
                 ) {

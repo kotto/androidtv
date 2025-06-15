@@ -38,7 +38,7 @@ fun TvCarouselSection(
             contentPadding = PaddingValues(start = 60.dp, end = 60.dp),
             modifier = Modifier
                 .height(200.dp)
-                .focusable() // Explicitly make it focusable
+                .focusable(enabled = false)
         ) {
             items(items) { item ->
                 ContentCard(item = item, onClick = { onItemClick(item) }) // Pass item to onClick

@@ -25,6 +25,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import coil.compose.AsyncImage
 import ai.maatcore.maatcore_android_tv.R as AppR // Added import for AppR
 import ai.maatcore.maatcore_android_tv.data.ContentItem
@@ -38,7 +45,8 @@ fun ContentCard(
     onFocus: (() -> Unit)? = null
 ) {
     var isFocused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (isFocused) 1.05f else 1f, label = "scale") // Scale 1.05 selon la charte
+    val scale by animateFloatAsState(if (isFocused) 1.05f else 1f, label = "scale")
+    val focusManager = LocalFocusManager.current // Scale 1.05 selon la charte
     
     Box(
         modifier = modifier
@@ -46,6 +54,12 @@ fun ContentCard(
             .height(195.dp) // Ratio 2:3
             .scale(scale)
             .focusable()
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionUp) {
+                    focusManager.moveFocus(FocusDirection.Up)
+                    true
+                } else false
+            }
             .onFocusChanged { focusState ->
                 val wasFocused = isFocused
                 isFocused = focusState.isFocused

@@ -29,6 +29,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.zIndex
 import androidx.tv.foundation.lazy.list.TvLazyColumn
 import androidx.tv.foundation.lazy.list.items
@@ -54,6 +56,8 @@ fun TvSidebarMenu(
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+        val focusManager = LocalFocusManager.current
+
     val sidebarWidth by animateDpAsState(
         targetValue = if (isExpanded) 224.dp else 56.dp,
         animationSpec = spring(dampingRatio = 0.8f, stiffness = 400f), label = "sidebarWidth"
@@ -76,6 +80,8 @@ fun TvSidebarMenu(
                     true
                 } else if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionRight) {
                     onExpandedChange(false)
+                    // move focus to main content
+                    focusManager.moveFocus(FocusDirection.Right)
                     true
                 } else {
                     false

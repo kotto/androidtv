@@ -12,14 +12,17 @@ import ai.maatcore.maatcore_android_tv.ui.components.TvSidebarMenu
 import ai.maatcore.maatcore_android_tv.ui.theme.*
 import android.util.Log
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.copy
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.CardDefaults as M3CardDefaults // Alias for clarity
@@ -34,12 +37,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -154,7 +161,17 @@ fun NetflixTvHomeScreen(navController: NavController) {
         )
 
         // Sidebar menu - uses TvSidebarMenu component
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val targetTopPadding = screenHeight * 0.23f // lower by roughly one-quarter (raised 10%)
+        val animatedTop by animateDpAsState(
+            targetValue = if (isMenuExpanded) targetTopPadding else 0.dp,
+            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+        )
         TvSidebarMenu(
+            modifier = Modifier
+                .padding(top = animatedTop)
+                .align(Alignment.CenterStart),
             items = menuItems,
             selectedIndex = selectedMenuIndex,
             isExpanded = isMenuExpanded,
@@ -166,7 +183,7 @@ fun NetflixTvHomeScreen(navController: NavController) {
                 }
             },
             onExpandedChange = { expanded -> isMenuExpanded = expanded },
-            modifier = Modifier.align(Alignment.CenterStart) // Sidebar on the left
+
         )
     }
 }
@@ -210,7 +227,7 @@ fun NetflixStyleSidebar(
     }
 
     Box(
-        modifier = modifier
+        modifier = modifier/*addedFocus*/
             .onPreviewKeyEvent { event ->
                 if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionLeft) {
                     if (selectedIndex >= 0 && selectedIndex < focusRequesters.size) {
@@ -306,19 +323,6 @@ fun NetflixMenuItemCard( // This is the definition from your original code
     )
 
     M3Card( // Using aliased M3 Card
-        onClick = onItemClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .scale(scale)
-            .focusRequester(focusRequester)
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-                onItemFocus(focusState.isFocused) // Call the passed lambda
-            }
-            .focusable(),
-        shape = RoundedCornerShape(12.dp), // M3 shape
-        colors = M3CardDefaults.cardColors(containerColor = cardColor) // M3 CardColors
     ) {
         Row(
             modifier = Modifier
@@ -424,7 +428,7 @@ fun TvMainContent(navController: NavController, modifier: Modifier = Modifier) {
 
 
     TvLazyColumn(
-        modifier = modifier
+        modifier = modifier/*addedFocus*/
             .padding(start = 24.dp, end = 24.dp) // Overall padding for the content area
             .fillMaxSize(),
         contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp),
@@ -457,9 +461,23 @@ fun TvMainContent(navController: NavController, modifier: Modifier = Modifier) {
 
 @Composable
 fun TvHeroSection(modifier: Modifier = Modifier) {
-    // Basic Hero Implementation - Customize as needed
+    val heroFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { heroFocusRequester.requestFocus() }
+    val focusManager = LocalFocusManager.current
+
     Box(
-        modifier = modifier
+        modifier = modifier/*addedFocus*/
+            .focusRequester(heroFocusRequester)
+            .focusable()
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
+                    focusManager.moveFocus(FocusDirection.Down)
+                    true
+                } else if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionUp) {
+                    // Consume to prevent scrolling outside when already at top
+                    true
+                } else false
+            }
             .clip(RoundedCornerShape(12.dp))
             .background(MaatColorGrisClair.copy(alpha = 0.2f)), // Placeholder background
         contentAlignment = Alignment.BottomStart
@@ -486,14 +504,14 @@ fun TvHeroSection(modifier: Modifier = Modifier) {
                 .padding(24.dp)
         ) {
             Text(
-                text = "Titre du contenu principal",
+                text = "Le réveil de la Maât",
                 color = Color.White,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Brève description du contenu mis en avant. Incitez l'utilisateur à explorer.",
+                text = "Pour un monde de vérité, justice et d'harmonie.",
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 16.sp,
                 maxLines = 2

@@ -6,12 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 
-@OptIn(ExperimentalTvMaterial3Api::class)
-@Composable
+@Composable // Removed ExperimentalTvMaterial3Api
 fun SplashScreen(
     modifier: Modifier = Modifier
 ) {

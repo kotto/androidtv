@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.hilt.gradle.plugin) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    // id("com.google.gms.google-services") version "4.4.1" apply false
+    // id("com.google.firebase.crashlytics") version "2.9.9" apply false // Use the correct version for Crashlytics
+    // id("com.google.firebase.firebase-perf") version "1.4.2" apply false // Use the correct version for Performance Monitoring
 }
 
 ext {

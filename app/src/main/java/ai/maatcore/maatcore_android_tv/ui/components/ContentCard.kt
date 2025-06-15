@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image // Added import for Image
 // import androidx.compose.foundation.shape.RoundedCornerShape // Not used directly, RectangleShape is used
 // import androidx.compose.material.Card // Not used, Box is used as card
 import androidx.compose.material3.Text // Changed to Material 3 Text
@@ -19,11 +20,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource // Added import for painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import ai.maatcore.maatcore_android_tv.R as AppR // Added import for AppR
 import ai.maatcore.maatcore_android_tv.data.ContentItem
 import ai.maatcore.maatcore_android_tv.ui.theme.*
 
@@ -60,8 +63,8 @@ fun ContentCard(
             )
     ) {
         // Image de fond
-        AsyncImage(
-            model = item.imageUrl, // Retour à l'utilisation unique de imageUrl
+        Image(
+            painter = painterResource(id = item.imageRes ?: AppR.drawable.placeholder_image), // Use imageRes, fallback to placeholder
             contentDescription = item.title,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

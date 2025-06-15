@@ -20,9 +20,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush // Import Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp // Import pour sp
 import androidx.navigation.NavHostController
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -32,7 +34,8 @@ import androidx.compose.foundation.lazy.items
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorOrSable
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorOrangeSolaire
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorNoirProfond
-// import androidx.tv.material3.ExperimentalTvMaterial3Api supprimé
+import ai.maatcore.maatcore_android_tv.ui.theme.InterFamily // Import police Inter
+import androidx.compose.ui.text.font.FontWeight // Ajout pour utiliser FontWeight
 
 data class MenuItemData( // Renommé pour éviter confusion avec le composable MenuItem
     val id: String,
@@ -51,17 +54,10 @@ fun MenuItem( // Composable pour un seul item de menu
 
     // targetBackgroundColor, targetTextColor, targetIconColor, translationX, glowElevation will use theme colors or derived values
 
-    val targetBackgroundColor = when {
-        isSelected -> MaatColorOrSable.copy(alpha = 0.2f) // Fond doré léger pour l'état actif
-        isFocused -> MaatColorOrangeSolaire.copy(alpha = 0.15f) // Fond orange léger pour focus
-        else -> Color.Transparent
-    }
-    val backgroundColor by animateColorAsState(targetValue = targetBackgroundColor, label = "backgroundColorMenuItem")
-
     val targetTextColor = when {
-        isSelected -> MaatColorOrSable // Texte doré pour l'état actif
-        isFocused -> MaatColorOrangeSolaire // Texte orange pour focus
-        else -> MaatColorOrSable.copy(alpha = 0.8f) // Texte doré normal
+        isSelected -> MaatColorOrSable // Doré quand actif
+        isFocused -> MaatColorOrangeSolaire // Orange quand focus
+        else -> MaatColorOrSable.copy(alpha = 0.8f) // Doré atténué
     }
     val textColor by animateColorAsState(targetValue = targetTextColor, label = "textColorMenuItem")
 
@@ -74,52 +70,31 @@ fun MenuItem( // Composable pour un seul item de menu
 
     val translationX by animateDpAsState(targetValue = if (isFocused || isSelected) 4.dp else 0.dp, label = "translationXMenuItem")
 
-    // Configuration de l'effet de Glow
-    val glowElevation by animateDpAsState(
-        targetValue = if (isFocused || isSelected) 8.dp else 0.dp, // Élévation pour le glow
-        label = "glowElevationMenuItem"
-    )
-
-    // Utiliser les couleurs du thème pour la lueur
-    val activeGlowColor = MaterialTheme.colorScheme.secondary // MaatColorCuivreAncien
-    val focusedGlowColor = MaterialTheme.colorScheme.primary  // MaatColorOrangeSolaire (pour "glow en hover")
-
-    val currentGlowColor = when {
-        isSelected -> activeGlowColor
-        isFocused -> focusedGlowColor
-        else -> Color.Transparent
-    }
-
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp) // Hauteur standard pour un item de menu
             .offset(x = translationX)
-            .shadow(
-                elevation = glowElevation,
-                shape = RoundedCornerShape(4.dp), // Légèrement arrondi pour la lueur
-                clip = false, // Important pour que la lueur dépasse
-                ambientColor = currentGlowColor, // Couleur de la lueur ambiante
-                spotColor = currentGlowColor     // Couleur de la lueur directionnelle
-            )
-            .background(backgroundColor) // Appliquer le fond APRÈS l'ombre (glow)
             .onFocusChanged { focusState ->
                 isFocused = focusState.isFocused
             }
             .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center // Centrer les éléments horizontalement
     ) {
         Icon(
             imageVector = item.icon,
             contentDescription = item.title,
             tint = iconColor,
-            modifier = Modifier.size(24.dp) // Taille standard pour icônes de menu
+            modifier = Modifier.size(20.dp) // Taille icônes 20x20px
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = item.title,
             color = textColor,
-            style = MaterialTheme.typography.labelLarge // Style pour les boutons en Material 3
+            fontSize = 18.sp, // Taille 18px
+            fontFamily = InterFamily,
+            fontWeight = FontWeight.Light // Caractères plus fins
         )
     }
 }
@@ -151,20 +126,20 @@ fun MenuVertical(
         modifier = modifier
             .width(240.dp) // Largeur spécifiée
             .fillMaxHeight()
-            .background(MaatColorNoirProfond) // Fond noir type Netflix
-            .padding(vertical = 24.dp, horizontal = 16.dp)
+            .background(Color.Black) // Pure black to merge with header
+            .padding(top = 8.dp, bottom = 24.dp, start = 16.dp, end = 16.dp) /* Réduction du padding supérieur général */
             .focusRequester(focusRequester)
     ) {
         items(listOf("Logo")) { // Logo Maât.TV
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 8.dp, top = 24.dp, bottom = 24.dp),
+                    .padding(start = 8.dp, top = 0.dp, bottom = 16.dp), // Padding ajusté pour position logo
                 contentAlignment = Alignment.CenterStart
             ) {
                 MaatBrandHeader()
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(11.dp)) /* Réduction spacer après logo (-30%) */
         }
 
         items(menuItems, key = { it.id }) { itemData ->
@@ -185,7 +160,7 @@ fun MenuVertical(
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp)) // Espacement réduit à 6dp (~30% de moins)
         }
     }
 

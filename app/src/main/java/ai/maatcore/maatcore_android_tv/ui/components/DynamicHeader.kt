@@ -3,6 +3,7 @@ package ai.maatcore.maatcore_android_tv.ui.components
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -21,6 +22,8 @@ import androidx.compose.foundation.Image // Import Image
 import androidx.compose.ui.res.painterResource // Import painterResource
 import ai.maatcore.maatcore_android_tv.R // Import R for drawable resources
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorOrSable // Import MaatColorOrSable
+import ai.maatcore.maatcore_android_tv.ui.theme.MontserratFamily // Import police Montserrat
+import ai.maatcore.maatcore_android_tv.ui.theme.PoppinsFamily // Import police Poppins
 
 data class HeaderContent(
     val title: String,
@@ -94,9 +97,10 @@ fun DynamicHeader(
             ) {
                 Text(
                     text = headerContent.title,
-                    color = MaatColorOrSable, // Changed to golden color
-                    fontSize = 42.sp,
-                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFF5D487), // Texte doré selon spécifications: #F5D487
+                    fontSize = 64.sp, // Taille selon spécifications: 64-84px
+                    fontFamily = MontserratFamily, // Police Montserrat selon spécifications
+                    fontWeight = FontWeight.ExtraBold, // ExtraBold selon spécifications
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -105,8 +109,10 @@ fun DynamicHeader(
                 
                 Text(
                     text = headerContent.subtitle,
-                    color = MaatColorOrSable.copy(alpha = 0.9f), // Changed to golden color with alpha
-                    fontSize = 18.sp,
+                    color = Color(0xFFF5D487).copy(alpha = 0.9f), // Texte doré selon spécifications: #F5D487
+                    fontSize = 20.sp, // Taille selon spécifications: 20-32px
+                    fontFamily = PoppinsFamily, // Police Poppins selon spécifications
+                    fontWeight = FontWeight.SemiBold, // SemiBold selon spécifications
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = 600.dp)
@@ -117,16 +123,20 @@ fun DynamicHeader(
                 Button(
                     onClick = headerContent.onAction,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD4AF37) // Couleur dorée comme dans l'image
+                        containerColor = Color(0xFFD4AF37) // Fond doré visible
                     ),
-                    modifier = Modifier.height(48.dp)
+                    modifier = Modifier
+                        .height(48.dp)
+                        .width(160.dp),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = headerContent.actionText,
-                        color = Color.Black,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 24.dp)
+                        color = Color(0xFF000000), // Texte noir pur
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = PoppinsFamily, // Police Poppins
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
             }

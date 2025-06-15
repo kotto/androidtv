@@ -12,17 +12,25 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import ai.maatcore.maatcore_android_tv.ui.components.*
 import ai.maatcore.maatcore_android_tv.data.ContentItem
-
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.hilt.navigation.compose.hiltViewModel
+import ai.maatcore.maatcore_android_tv.ui.viewmodel.ProgramViewModel
+import ai.maatcore.maatcore_android_tv.data.remote.maattv.ProgramDto
 
 @Composable
-fun MaatTVScreen(navController: NavHostController) {
+fun MaatTVScreen(navController: NavHostController, viewModel: ProgramViewModel = hiltViewModel()) {
     var currentRoute by remember { mutableStateOf("maattv") }
     var selectedContent by remember { mutableStateOf<ContentItem?>(null) }
     
-    // Données enrichies pour la démo avec métadonnées complètes
-    val vodContent = listOf(
+    // Load programs from backend
+    val programsState by viewModel.programs.collectAsState()
+    LaunchedEffect(Unit) { viewModel.load() }
+    
+    val vodContent: List<ContentItem> = if (programsState.isNotEmpty()) {
+        programsState.filter { !it.live && it.description.contains("Film", true) || it.description.contains("Série", true) }
+            .map { it.toContentItem() }
+    } else listOf(
         ContentItem("1", "Black Panther: Wakanda Forever", "https://picsum.photos/300/450?random=1", "Action • 2022 • 2h 41min", 
             description = "Après la mort du roi T'Challa, le royaume de Wakanda doit faire face à de nouvelles menaces tout en honorant l'héritage de leur roi défunt."),
         ContentItem("2", "Queen Sono", "https://picsum.photos/300/450?random=2", "Série • Thriller • 2020",
@@ -35,7 +43,10 @@ fun MaatTVScreen(navController: NavHostController) {
             description = "Le prince Akeem retourne en Amérique pour retrouver son fils et héritier du trône de Zamunda.")
     )
     
-    val infoChannelContent = listOf(
+    val infoChannelContent: List<ContentItem> = if (programsState.isNotEmpty()) {
+        programsState.filter { it.live && it.title.contains("Info", true) }
+            .map { it.toContentItem() }
+    } else listOf(
         ContentItem("6", "Journal Afrique 20h", "https://picsum.photos/300/450?random=6", "En direct • Info",
             description = "L'actualité africaine et internationale présentée par nos journalistes experts."),
         ContentItem("7", "Débat Panafricain", "https://picsum.photos/300/450?random=7", "21h30 • Politique",
@@ -46,7 +57,10 @@ fun MaatTVScreen(navController: NavHostController) {
             description = "Prévisions météorologiques détaillées pour toutes les régions d'Afrique.")
     )
     
-    val musicChannelContent = listOf(
+    val musicChannelContent: List<ContentItem> = if (programsState.isNotEmpty()) {
+        programsState.filter { it.title.contains("Musique", true) || it.description.contains("Musique", true) }
+            .map { it.toContentItem() }
+    } else listOf(
         ContentItem("10", "Afrobeat Live Session", "https://picsum.photos/300/450?random=10", "En direct • Musique",
             description = "Les plus grands artistes afrobeat en concert live depuis nos studios."),
         ContentItem("11", "Top 50 Africa", "https://picsum.photos/300/450?random=11", "Playlist • Hits",
@@ -57,7 +71,10 @@ fun MaatTVScreen(navController: NavHostController) {
             description = "Les nouveaux talents et les dernières sorties de la scène musicale africaine.")
     )
     
-    val sportsChannelContent = listOf(
+    val sportsChannelContent: List<ContentItem> = if (programsState.isNotEmpty()) {
+        programsState.filter { it.title.contains("Sport", true) || it.description.contains("Football", true) }
+            .map { it.toContentItem() }
+    } else listOf(
         ContentItem("14", "MaâtFoot - CAN 2024", "https://picsum.photos/300/450?random=14", "En direct • Football",
             description = "Suivez tous les matchs de la Coupe d'Afrique des Nations en direct et en exclusivité."),
         ContentItem("15", "Basketball Africa League", "https://picsum.photos/300/450?random=15", "Sport • Basketball",
@@ -178,3 +195,12 @@ fun MaatTVScreen(navController: NavHostController) {
         }
     }
 }
+
+// Extension function
+private fun ProgramDto.toContentItem() = ContentItem(
+    id = id,
+    title = title,
+    imageUrl = imageUrl,
+    subtitle = if (live) "En direct" else null,
+    description = description
+)

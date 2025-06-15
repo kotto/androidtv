@@ -48,6 +48,7 @@ import ai.maatcore.maatcore_android_tv.ui.theme.MontserratFamily
 import ai.maatcore.maatcore_android_tv.ui.theme.PoppinsFamily
 import ai.maatcore.maatcore_android_tv.ui.theme.InterFamily
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorNoirProfond // Import MaatColorNoirProfond
+import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorOrSable // Import MaatColorOrSable
 
 // Modèles de données (simplifiés, adaptez les vôtres)
 data class Movie(val id: String, val title: String, val director: String, val imageRes: Int, val category: String)
@@ -55,26 +56,26 @@ data class MaatService(val id: String, val name: String, val imageRes: Int)
 data class FeaturedContent(val id: String, val title: String, val description: String, val imageRes: Int)
 
 @Composable
+@Deprecated("Remplacé par la nouvelle HomeScreen dans com.maatcore.tv.ui.screens.MaatCoreHomeScreen")
 fun HomeScreen(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: "home"
 
     // Données exemples avec placeholders - Mise à jour pour correspondre à l'image
     val trendingMovies = listOf(
-        Movie("1", "OPPENHEIMER", "Christopher Nolan", R.drawable.placeholder_image, "Action"),
-        Movie("2", "AVATAR", "James Cameron", R.drawable.placeholder_image, "Science-Fiction"),
-        Movie("3", "JOHN WICK", "Chad Stahelski", R.drawable.placeholder_image, "Action"),
-        Movie("4", "EQUALIZER 3", "Antoine Fuqua", R.drawable.placeholder_image, "Action"),
-        Movie("5", "CREED III", "Michael B. Jordan", R.drawable.placeholder_image, "Drame"),
-        Movie("6", "MaätCare", "", R.drawable.maat_care, "Service")
+        Movie("1", "Maät.TV", "", R.drawable.maat_tv, "Service"),
+        Movie("2", "MaätFlix", "", R.drawable.maat_flix, "Service"),
+        Movie("3", "MaätCare", "", R.drawable.maat_care, "Service"),
+        Movie("4", "MaätClass", "", R.drawable.maat_class, "Service"),
+        Movie("5", "MaätFoot", "", R.drawable.maat_foot, "Service")
     )
 
     // Menu vertical avec icônes dorées comme dans l'image
     val maatServices = listOf(
-        MaatService("1", "Maât.TV", R.drawable.maat_tv),
-        MaatService("2", "MaâtFlix", R.drawable.maat_flix),
-        MaatService("3", "MaâtCare", R.drawable.maat_care),
-        MaatService("4", "MaâtClass", R.drawable.maat_class),
-        MaatService("5", "MaâtFoot", R.drawable.maat_foot)
+        MaatService("1", "Maät.TV", R.drawable.maat_tv),
+        MaatService("2", "MaätFlix", R.drawable.maat_flix),
+        MaatService("3", "MaätCare", R.drawable.maat_care),
+        MaatService("4", "MaätClass", R.drawable.maat_class),
+        MaatService("5", "MaätFoot", R.drawable.maat_foot)
     )
 
     val featuredItem = FeaturedContent(
@@ -87,14 +88,14 @@ fun HomeScreen(navController: NavHostController) {
     Row(modifier = Modifier.fillMaxSize()) {
         MenuVertical(navController = navController, currentRoute = currentRoute)
 
-        Column(modifier = Modifier.fillMaxSize().background(MaatColorNoirProfond)) { // Set background to deep black
+        Column(modifier = Modifier.fillMaxSize().background(MaatColorNoirProfond).offset(y = (-40).dp)) { // Remonte les cartes sans padding négatif
             // Dynamic Header for HomeScreen - Title removed as it's already in the image
             DynamicHeader(
                 content = HeaderContent(
                     title = "", // Removed title as it's already in the image
                     subtitle = featuredItem.description,
                     imageUrl = "", // Not used as we are using local drawable
-                    imageRes = featuredItem.imageRes, // Using the featured content image
+                    imageRes = R.drawable.maat_header, // Utiliser l'image réelle du headerured content image
                     actionText = "Regarder",
                     onAction = { /* TODO: Action for featured content */ }
                 ),
@@ -104,22 +105,22 @@ fun HomeScreen(navController: NavHostController) {
             // All content sections directly within this Column
             // Section Nouveautés (comme dans l'image)
             Text(
-                "Nouveautés",
+                "Nos services",
                 fontSize = 20.sp,
                 fontFamily = PoppinsFamily,
                 color = Color(0xFFD4AF37), // Couleur dorée comme dans l'image
                 modifier = Modifier.padding(start = 16.dp) // Removed bottom padding
             )
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) { // Wrap LazyRow in a Column for padding
+            Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) { // Padding réduit
                 val movieListState = rememberLazyListState() // Pour conserver la position au retour
                 
                 LazyRow(
                     state = movieListState,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(end = 48.dp) // Marge de sécurité pour l'overscan TV
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    contentPadding = PaddingValues(start = 0.dp, end = 48.dp)
                 ) {
-                    items(trendingMovies) { movie ->
-                        MovieCard(movie = movie) // Afficher les films dans la section Nouveautés
+                    items(maatServices) { service ->
+                        ServiceCard(service = service, modifier = Modifier.width(110.dp))
                     }
                 }
             }
@@ -134,16 +135,16 @@ fun HomeScreen(navController: NavHostController) {
                 color = Color(0xFFD4AF37), // Couleur dorée comme dans l'image
                 modifier = Modifier.padding(start = 16.dp) // Removed bottom padding
             )
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) { // Wrap LazyRow in a Column for padding
+            Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) { // Padding réduit
                 val serviceListState = rememberLazyListState() // Pour conserver la position au retour
                 
                 LazyRow(
                     state = serviceListState,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(end = 48.dp) // Marge de sécurité pour l'overscan TV
+                    horizontalArrangement = Arrangement.spacedBy(24.dp), // Espacement horizontal entre cartes: 24px
+                    contentPadding = PaddingValues(start = 0.dp, end = 48.dp) // Marge de sécurité pour l'overscan TV
                 ) {
                     items(maatServices) { service ->
-                        ServiceCard(service = service) // Afficher les services comme catégories
+                        ServiceCard(service = service, modifier = Modifier.width(110.dp)) // hauteur 220dp
                     }
                 }
             }
@@ -152,10 +153,12 @@ fun HomeScreen(navController: NavHostController) {
 
             // Section Contenu à la Une
             Text(
-                "À la Une",
-                fontSize = 20.sp,
+                "Nos services", // Titre remplacé selon spécifications
+                fontSize = 32.sp, // Taille selon spécifications: 32px
                 fontFamily = PoppinsFamily,
-                modifier = Modifier.padding(start = 16.dp) // Removed bottom padding
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFFF8C42), // Couleur orange solaire selon spécifications: #FF8C42
+                modifier = Modifier.padding(bottom = 8.dp) // Removed bottom padding
             )
             FeaturedCard(featuredItem)
 
@@ -196,8 +199,8 @@ fun MovieCard(movie: Movie, modifier: Modifier = Modifier) {
     Card(
         onClick = { /* Naviguer vers les détails du film */ },
         modifier = modifier
-            .width(150.dp)
-            .height(220.dp)
+            .width(130.dp)
+            .height(180.dp)
             .scale(scale)
             .graphicsLayer {
                 shadowElevation = elevation.toPx()
@@ -212,7 +215,7 @@ fun MovieCard(movie: Movie, modifier: Modifier = Modifier) {
                     painter = painterResource(id = movie.imageRes),
                     contentDescription = "Film: ${movie.title} par ${movie.director}", // Description améliorée pour l'accessibilité
                     modifier = Modifier
-                        .height(180.dp)
+                        .height(140.dp)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
                     contentScale = ContentScale.Crop
@@ -240,8 +243,8 @@ fun MovieCard(movie: Movie, modifier: Modifier = Modifier) {
                         text = movie.title,
                         modifier = Modifier.fillMaxWidth(),
                         fontFamily = PoppinsFamily,
-                        fontSize = 14.sp,
-                        color = Color(0xFFD4AF37), // Texte doré comme dans l'image
+                        fontSize = 12.sp,
+                        color = Color(0xFFF5D487), // Texte doré comme dans l'image
                         maxLines = 1,
                         textAlign = TextAlign.Center
                     )
@@ -255,78 +258,27 @@ fun MovieCard(movie: Movie, modifier: Modifier = Modifier) {
 fun ServiceCard(service: MaatService, modifier: Modifier = Modifier) {
     var isFocused by remember { mutableStateOf(false) }
     
-    // Animation de scale pour l'effet de focus
     val scale by animateFloatAsState(
-        targetValue = if (isFocused) 1.1f else 1.0f,
-        animationSpec = tween(durationMillis = 200)
-    )
-    
-    // Animation de l'élévation pour l'effet de focus
-    val elevation by animateDpAsState(
-        targetValue = if (isFocused) 16.dp else 4.dp,
-        animationSpec = tween(durationMillis = 200)
-    )
-    
-    // Animation de la luminosité pour l'effet de focus
-    val iconAlpha by animateFloatAsState(
-        targetValue = if (isFocused) 1.0f else 0.8f,
-        animationSpec = tween(durationMillis = 200)
+        targetValue = if (isFocused) 1.05f else 1f,
+        animationSpec = tween(durationMillis = 250)
     )
     
     androidx.compose.material3.Card(
-        onClick = { /* Naviguer vers le service */ },
+        onClick = { /* Navigation */ },
         modifier = modifier
-            .size(120.dp)
+            .width(110.dp)
+            .height(260.dp)
             .scale(scale)
-            .graphicsLayer {
-                shadowElevation = elevation.toPx()
-            }
             .onFocusChanged { isFocused = it.isFocused }
             .focusable()
-            .zIndex(if (isFocused) 1f else 0f) // Mettre l'élément focusé au-dessus des autres
+            .zIndex(if (isFocused) 1f else 0f)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
-                .background(Color(0xFF1A1A1A)), // Fond noir comme dans l'image
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Bordure dorée quand focusé
-            Box(
-                modifier = Modifier.size(70.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (isFocused) {
-                    Box(
-                        modifier = Modifier
-                            .size(70.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color(0xFFD4AF37), CircleShape)
-                    )
-                }
-                
-                Image(
-                    painter = painterResource(id = service.imageRes),
-                    contentDescription = "Service: ${service.name}", // Description améliorée pour l'accessibilité
-                    modifier = Modifier
-                        .size(60.dp)
-                        .alpha(iconAlpha),
-                    contentScale = ContentScale.Fit
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                service.name,
-                fontFamily = PoppinsFamily,
-                fontSize = 14.sp,
-                color = if (isFocused) Color(0xFFD4AF37) else Color(0xFFBCA136), // Plus brillant quand focusé
-                textAlign = TextAlign.Center
-            )
-        }
+        Image(
+            painter = painterResource(id = service.imageRes),
+            contentDescription = service.name,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
     }
 }
 

@@ -8,6 +8,7 @@ data class ContentItem(
     val title: String,
     val imageUrl: String,
     val subtitle: String? = null,
+    val imageRes: Int? = null,
     val description: String? = null,
     val mainImageUrl: String? = null,
     val descriptionLong: String? = null,
@@ -60,3 +61,6 @@ data class UserPlaybackState(
     val lastWatched: String,
     val completed: Boolean = false
 )
+
+// Nouvelle classe pour les sections de contenu, pour éviter les redéclarations
+data class ContentSection(val title: String, val items: List<ContentItem>)

@@ -1,0 +1,168 @@
+Solution complète : Version Android TV du layout Netflix avec menu vertical en Jetpack Compose
+Compose for TV est la solution recommandée pour concevoir des interfaces optimisées pour Android TV, offrant des composants adaptés à la navigation à la télécommande, des focus automatiques et une gestion fluide des carrousels et menus verticaux. Voici une structure adaptée à la télévision, fidèle à l’esprit Netflix, avec un menu vertical à gauche.
+
+1. Dépendances spécifiques TV
+Ajoutez les dépendances dans votre build.gradle :
+
+kotlin
+dependencies {
+    val composeBom = platform("androidx.compose:compose-bom:2025.05.00")
+    implementation(composeBom)
+    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    // Dépendance Compose for TV
+    implementation("androidx.tv:tv-material:1.0.0")
+}
+2. Structure générale du layout TV
+Le layout TV utilise une Row principale :
+
+Colonne gauche : Menu vertical avec navigation par focus (télécommande).
+
+Colonne droite : Contenu principal (hero + carrousels horizontaux adaptés TV).
+
+kotlin
+@Composable
+fun NetflixTvHomeScreen() {
+    Row(modifier = Modifier.fillMaxSize().background(Color(0xFF141414))) {
+        TvVerticalMenu(modifier = Modifier.width(120.dp).fillMaxHeight())
+        TvMainContent(modifier = Modifier.weight(1f))
+    }
+}
+3. Menu vertical TV avec focus
+Utilisez les composants androidx.tv.material3 pour garantir la gestion du focus et la navigation à la télécommande.
+
+kotlin
+import androidx.tv.material3.NavigationDrawer
+import androidx.tv.material3.NavigationDrawerItem
+
+@Composable
+fun TvVerticalMenu(modifier: Modifier = Modifier) {
+    NavigationDrawer(
+        modifier = modifier.background(Color.Black),
+        drawerContent = {
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                NavigationDrawerItem(
+                    selected = true,
+                    onClick = { /* Naviguer vers Accueil */ },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Accueil") },
+                    label = { Text("Accueil") }
+                )
+                NavigationDrawerItem(
+                    selected = false,
+                    onClick = { /* Naviguer vers Séries */ },
+                    icon = { Icon(Icons.Default.Tv, contentDescription = "Séries") },
+                    label = { Text("Séries") }
+                )
+                // Ajoutez d'autres items...
+            }
+        }
+    )
+}
+4. Contenu principal adapté TV
+Section Hero
+kotlin
+import androidx.tv.material3.Card
+
+@Composable
+fun TvHeroSection() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.hero_image),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize()
+        )
+        Box(
+            modifier = Modifier.matchParentSize().background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xCC141414), Color.Transparent),
+                    startY = 0f,
+                    endY = 800f
+                )
+            )
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(32.dp)
+        ) {
+            Text("Titre du film", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Bold)
+            Text("Synopsis court...", color = Color.White, fontSize = 18.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                androidx.tv.material3.Button(onClick = { /* Lecture */ }) { Text("Lecture") }
+                androidx.tv.material3.OutlinedButton(onClick = { /* Ma liste */ }) { Text("Ma liste") }
+            }
+        }
+    }
+}
+Carrousels horizontaux adaptés TV
+Utilisez LazyRow avec gestion du focus pour la navigation à la télécommande :
+
+kotlin
+@Composable
+fun TvCarouselSection(title: String, movies: List<Movie>) {
+    Column(modifier = Modifier.padding(vertical = 16.dp)) {
+        Text(title, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 24.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(movies) { movie ->
+                TvMovieCard(movie)
+            }
+        }
+    }
+}
+
+@Composable
+fun TvMovieCard(movie: Movie) {
+    Card(
+        onClick = { /* Détail */ },
+        modifier = Modifier
+            .width(180.dp)
+            .height(270.dp)
+            .focusable() // Important pour TV !
+    ) {
+        Image(
+            painter = painterResource(id = movie.imageRes),
+            contentDescription = movie.title,
+            contentScale = ContentScale.Crop
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color(0xCC141414)),
+                        startY = 0f,
+                        endY = 270f
+                    )
+                )
+        )
+        Text(
+            movie.title,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)
+        )
+    }
+}
+5. Points clés pour TV
+Gestion du focus : Utilisez .focusable() et les composants TV Material pour une navigation fluide à la télécommande.
+
+Tailles adaptées : Privilégiez des tailles de texte et de cartes plus grandes pour la lisibilité sur TV.
+
+Dégradés et superposition : Même logique que sur mobile, mais accentuez les overlays pour le contraste à distance.
+
+Navigation verticale : Le menu vertical reste visible à gauche, le focus s’y déplace facilement avec la télécommande.
+
+Composants TV spécifiques : Préférez androidx.tv.material3 pour les boutons, cards, menus, 

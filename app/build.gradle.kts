@@ -23,13 +23,14 @@ android {
         applicationId = "ai.maatcore.maatcore_android_tv"
         minSdk = 21 // Utilisez libs.versions.minSdk si défini
         targetSdk = 36 // Utilisez libs.versions.targetSdk si défini
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "OPENAI_API_KEY", "\"${project.properties["OPENAI_API_KEY"] ?: "YOUR_API_KEY"}\"")
     }
 
     buildTypes {
@@ -63,6 +64,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -97,14 +99,13 @@ dependencies {
     implementation(libs.androidx.compose.material3) // Si vous avez besoin de M3 standard en plus
     implementation(libs.androidx.compose.material.icons.extended) // Pour les icônes étendues
 
-    // Android TV - Spécifique (Utilisation des alias du TOML)
-    implementation(libs.androidx.tv.foundation)
-    implementation(libs.androidx.tv.material)
-    // implementation(libs.androidx.leanback) // Si vous avez créé un alias pour "androidx.leanback:leanback:1.0.0"
-    // implementation(libs.androidx.leanback.preference) // Si alias créé pour "androidx.leanback:leanback-preference:1.0.0"
+    // Android TV - Compose dependencies
+    implementation("androidx.tv:tv-foundation:1.0.0-alpha10")
+    implementation("androidx.tv:tv-material:1.0.0-alpha10")
 
     // Navigation
-    implementation(libs.androidx.navigation.compose) // Devrait être l'alias pour "androidx.navigation:navigation-compose"
+    implementation(platform(libs.androidx.compose.bom)) // BOM pour les dépendances Compose
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.androidx.hilt.navigation.compose)   // Assurez-vous que cet alias est pour "androidx.hilt:hilt-navigation-compose"
 
     // ViewModel & LiveData (Lifecycle)
@@ -118,10 +119,6 @@ dependencies {
 
     // Networking - Retrofit & OkHttp (Assurez-vous d'avoir les alias dans libs.versions.toml)
     // implementation(libs.retrofit)
-    // implementation(libs.retrofit.converter.gson)
-    // implementation(libs.okhttp)
-    // implementation(libs.okhttp.logging.interceptor)
-    // Exemple de chaînes si les alias n'existent pas :
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -145,7 +142,7 @@ dependencies {
     implementation(libs.coil.compose) // Assurez-vous que cet alias existe
     implementation(libs.coil.video)   // Assurez-vous que cet alias existe
 
-    // Video Player - ExoPlayer (Media3) (Assurez-vous d'avoir les alias)
+    // Video Player - ExoPlayer (Media3) (Assurez-vous d'avoir les aliases)
     // implementation(libs.androidx.media3.exoplayer)
     // ... autres modules media3
     // Exemple de chaînes :
@@ -193,15 +190,16 @@ dependencies {
 
 
     // Firebase BOM (doit être DÉCLARÉ AVANT les autres dépendances Firebase pour gérer leurs versions)
-    implementation(platform(libs.firebase.bom)) // Assurez-vous que cet alias existe
+    // Firebase BOM (doit être DÉCLARÉ AVANT les autres dépendances Firebase pour gérer leurs versions)
+    // implementation(platform(libs.firebase.bom)) // Assurez-vous que cet alias existe
 
     // Analytics & Monitoring
-    implementation(libs.firebase.analytics)    // Si alias existe pour firebase-analytics-ktx
-    implementation(libs.firebase.crashlytics) // Si alias existe pour firebase-crashlytics-ktx
+    // implementation(libs.firebase.analytics)    // Si alias existe pour firebase-analytics-ktx
+    // implementation(libs.firebase.crashlytics) // Si alias existe pour firebase-crashlytics-ktx
     // implementation(libs.firebase.performance) // Si alias existe
 
     // Push Notifications
-    implementation(libs.firebase.messaging)   // Si alias existe pour firebase-messaging-ktx
+    // implementation(libs.firebase.messaging)   // Si alias existe pour firebase-messaging-ktx
 
 
     // Biometric Authentication
@@ -224,6 +222,10 @@ dependencies {
     implementation(libs.androidx.glance.appwidget) // Si alias existe
     implementation(libs.androidx.glance.material3) // Si alias existe
 
+    implementation(libs.androidx.compose.material.icons.extended) // Ou libs.androidx.compose.material.icons.core
+
+    implementation("androidx.compose.ui:ui-graphics:1.6.0-alpha03")
+
     // Testing
     testImplementation(libs.junit) // Si alias existe pour "junit:junit"
     // testImplementation(libs.mockito.core) // Si alias existe
@@ -242,7 +244,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
         freeCompilerArgs += listOf(
             "-Xallow-unstable-dependencies",
             "-Xsuppress-version-warnings",
-            "-Xopt-in=androidx.tv.material3.ExperimentalTvMaterial3Api"
+
         )
     }
 }

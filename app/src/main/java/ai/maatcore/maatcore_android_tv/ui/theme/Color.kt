@@ -9,10 +9,12 @@ val MaatColorOrangeSolaire = Color(0xFFFF8C42)       // Accent 1 (CTA, hover)
 val MaatColorCuivreAncien = Color(0xFFA65C2E)        // Accent 2 (soulignement)
 val MaatColorGrisTresFonce = Color(0xFF1E1E1E)       // Fond secondaire carte
 val MaatColorCuivreClair = Color(0xFFE0C28A)         // Texte secondaire
+val MaatColorGrisClair = Color(0xFFCCCCCC)           // Added for placeholder backgrounds
 
 // Service Specific Accents
 val MaatColorVertSante = Color(0xFF46B17B)           // Accent MaâtCare
 val MaatColorJauneEnergie = Color(0xFFFFD23F)         // Accent MaâtFoot
+val MaatColorBleuCeruleen = Color(0xFF00A3FF)         // Accent MaâtClass
 
 // You can add more semantic color names here if needed, for example:
 // val Primary = MaatColorOrangeSolaire
@@ -23,3 +25,9 @@ val MaatColorJauneEnergie = Color(0xFFFFD23F)         // Accent MaâtFoot
 // val OnSurface = MaatColorOrSable
 // val Secondary = MaatColorCuivreAncien
 // val OnSecondary = MaatColorOrSable
+
+// Gradient Colors for Netflix UI
+val MenuGradientStart = Color(0xFF0D0700)
+val MenuGradientEnd = Color(0xFF160A00)
+val CardSectionGradientStart = Color(0xFF0D0700) // Same as MenuGradientStart for consistency
+val CardSectionGradientEnd = Color(0xFF250F00)

@@ -21,8 +21,8 @@ composeFoundation = "1.8.2" # Version spécifique pour androidx.compose.foundati
 # composeMaterialIconsExtended = "1.8.0-beta01" # Pour les icônes Material étendues - Let BOM manage
 
 # --- Android TV ---
-tvFoundation = "1.0.0-alpha10"
-tvMaterial = "1.0.0-alpha10"       # Pour androidx.tv:tv-material (ou androidx.tv.material3:material3 si vous visez cela)
+tvFoundation = "1.0.0"
+tvMaterial = "1.0.0"       # Pour androidx.tv:tv-material (ou androidx.tv.material3:material3 si vous visez cela)
 leanback = "1.0.0"         # Si vous utilisez des composants Leanback classiques
 
 # --- Navigation ---

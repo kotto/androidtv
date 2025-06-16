@@ -2,7 +2,7 @@
 
 package ai.maatcore.maatcore_android_tv.ui.screens
 
-// Corrected and organized imports
+import androidx.compose.foundation.Image // <-- THIS IS THE ONE YOU NEED for the Composable
 import ai.maatcore.maatcore_android_tv.R as AppR
 import ai.maatcore.maatcore_android_tv.data.ContentItem
 import ai.maatcore.maatcore_android_tv.data.ContentSection
@@ -13,11 +13,8 @@ import ai.maatcore.maatcore_android_tv.ui.theme.*
 import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.Spring
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
@@ -27,8 +24,6 @@ import androidx.compose.material3.CardDefaults as M3CardDefaults
 import androidx.compose.material3.Card as M3Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,17 +49,16 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.TvLazyRow
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon as TvIcon
+import coil.compose.rememberAsyncImagePainter
 
-// Define typealias once
 typealias NetflixMenuItem = SidebarItem
 
 @Composable
 fun NetflixTvHomeScreen(navController: NavController) {
     var selectedMenuIndex by remember { mutableStateOf(0) }
-    var isMenuExpanded by remember { mutableStateOf(false) } // Start collapsed
+    var isMenuExpanded by remember { mutableStateOf(false) }
     var isMenuFocused by remember { mutableStateOf(false) }
 
     val menuItems = remember {
@@ -73,42 +67,42 @@ fun NetflixTvHomeScreen(navController: NavController) {
                 id = "home",
                 title = "Accueil",
                 icon = Icons.Default.Home,
-                route = "home",
+                route = "netflix_home",
                 description = "Découvrez notre contenu"
             ),
             NetflixMenuItem(
                 id = "tv",
                 title = "Maât.TV",
                 icon = Icons.Default.Tv,
-                route = "maat_tv_screen",
+                route = "maattv",
                 description = "Chaînes TV en direct"
             ),
             NetflixMenuItem(
                 id = "care",
                 title = "MaâtCare",
                 icon = Icons.Default.Favorite,
-                route = "maat_care_screen",
+                route = "maatcare",
                 description = "Santé et bien-être"
             ),
             NetflixMenuItem(
                 id = "class",
                 title = "MaâtClass",
                 icon = Icons.Default.School,
-                route = "maat_class_screen",
+                route = "maatclass",
                 description = "Formation et éducation"
             ),
             NetflixMenuItem(
                 id = "foot",
                 title = "MaâtFoot",
                 icon = Icons.Default.SportsSoccer,
-                route = "maat_foot_screen",
+                route = "maatfoot",
                 description = "Sport et football"
             ),
             NetflixMenuItem(
                 id = "flix",
                 title = "MaâtFlix",
                 icon = Icons.Default.Movie,
-                route = "netflix_tv_home_screen",
+                route = "maattube",
                 description = "Films et séries"
             )
         )
@@ -127,13 +121,13 @@ fun NetflixTvHomeScreen(navController: NavController) {
                 )
             )
     ) {
-        // Main content with smooth parallax effect
+        // Main content
         TvMainContent(
             navController = navController,
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    translationX = if (isMenuExpanded) 280f else 0f // Increased for better visibility
+                    translationX = if (isMenuExpanded) 280f else 0f
                     scaleX = if (isMenuExpanded) 0.82f else 1f
                     scaleY = if (isMenuExpanded) 0.82f else 1f
                     alpha = if (isMenuExpanded) 0.6f else 1f
@@ -147,22 +141,22 @@ fun NetflixTvHomeScreen(navController: NavController) {
                         onSetMenuFocus = { isMenuFocused = it }
                     )
                 }
-                .focusable(!isMenuFocused) // Content focusable only when menu is not focused
+                .focusable(!isMenuFocused)
         )
 
-        // Sidebar menu - repositioned correctly
+        // Sidebar menu
         TvSidebarMenu(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(
-                    top = 60.dp, // Fixed positioning from top
+                    top = 60.dp,
                     start = 16.dp
                 ),
             items = menuItems,
             selectedIndex = selectedMenuIndex,
             isExpanded = isMenuExpanded,
             onItemSelected = { index: Int ->
-                if (index >= 0 && index < menuItems.size) {
+                if (index in menuItems.indices) {
                     selectedMenuIndex = index
                     navController.navigate(menuItems[index].route)
                     isMenuExpanded = false
@@ -171,13 +165,12 @@ fun NetflixTvHomeScreen(navController: NavController) {
             },
             onExpandedChange = { expanded ->
                 isMenuExpanded = expanded
-                isMenuFocused = expanded // Set isMenuFocused based on expansion
+                isMenuFocused = expanded
             }
         )
     }
 }
 
-// Helper function for better key event handling
 private fun handleMainContentKeyEvent(
     event: KeyEvent,
     isMenuExpanded: Boolean,
@@ -186,7 +179,7 @@ private fun handleMainContentKeyEvent(
     onSetMenuFocus: (Boolean) -> Unit
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
-    
+
     return when (event.key) {
         Key.DirectionLeft -> {
             if (!isMenuFocused) {
@@ -236,7 +229,7 @@ fun NetflixMenuItemCard(
             isFocused -> MaatColorOrangeSolaire.copy(alpha = 0.2f)
             else -> Color.Transparent
         },
-        animationSpec = tween(200),
+        animationSpec = tween(150),
         label = "cardColor"
     )
 
@@ -246,7 +239,7 @@ fun NetflixMenuItemCard(
             isFocused -> MaatColorOrangeSolaire
             else -> Color.White.copy(alpha = 0.8f)
         },
-        animationSpec = tween(200),
+        animationSpec = tween(150),
         label = "iconColor"
     )
 
@@ -260,7 +253,7 @@ fun NetflixMenuItemCard(
                 if (event.type == KeyEventType.KeyDown) {
                     when (event.key) {
                         Key.DirectionCenter, Key.Enter -> {
-                            onItemClick() // Re-added onClick here as it was removed in previous debug step
+                            onItemClick()
                             true
                         }
                         else -> false
@@ -292,9 +285,9 @@ fun NetflixMenuItemCard(
                 visible = isExpanded,
                 enter = expandHorizontally(
                     animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f)
-                ) + fadeIn(animationSpec = tween(300, delayMillis = 50)),
-                exit = shrinkHorizontally(animationSpec = tween(200)) +
-                        fadeOut(animationSpec = tween(150))
+                ) + fadeIn(animationSpec = tween(200, delayMillis = 50)),
+                exit = shrinkHorizontally(animationSpec = tween(120)) +
+                        fadeOut(animationSpec = tween(100))
             ) {
                 Column(
                     modifier = Modifier
@@ -315,10 +308,10 @@ fun NetflixMenuItemCard(
 
                     AnimatedVisibility(
                         visible = isFocused && item.description.isNotEmpty(),
-                        enter = fadeIn(animationSpec = tween(200, delayMillis = 100)) +
-                                expandVertically(animationSpec = tween(200, delayMillis = 100)),
-                        exit = fadeOut(animationSpec = tween(150)) +
-                                shrinkVertically(animationSpec = tween(150))
+                        enter = fadeIn(animationSpec = tween(120, delayMillis = 60)) +
+                                expandVertically(animationSpec = tween(120, delayMillis = 60)),
+                        exit = fadeOut(animationSpec = tween(80)) +
+                                shrinkVertically(animationSpec = tween(80))
                     ) {
                         Text(
                             text = item.description,
@@ -337,41 +330,46 @@ fun NetflixMenuItemCard(
 @Composable
 fun TvMainContent(navController: NavController, modifier: Modifier = Modifier) {
     val focusManager = LocalFocusManager.current
-    
-    // Dummy data for content sections
-    val servicesSection = ContentSection(
-        "Nos services",
-        listOf(
-            ContentItem("maat_tv", "Maât.TV", imageUrl = "", imageRes = AppR.drawable.maat_tv),
-            ContentItem("maat_care", "MaâtCare", imageUrl = "", imageRes = AppR.drawable.maat_care),
-            ContentItem("maat_class", "MaâtClass", imageUrl = "", imageRes = AppR.drawable.maat_class),
-            ContentItem("maat_foot", "MaâtFoot", imageUrl = "", imageRes = AppR.drawable.maat_foot),
-            ContentItem("maat_flix", "MaâtFlix", imageUrl = "", imageRes = AppR.drawable.maat_flix)
-        )
-    )
 
-    val recommendationsSection = ContentSection(
-        "Recommendations",
-        listOf(
-            ContentItem("rec_1", "Contenu Recommandé 1", imageUrl = "", imageRes = AppR.drawable.maat_tv),
-            ContentItem("rec_2", "Contenu Recommandé 2", imageUrl = "", imageRes = AppR.drawable.maat_care),
-            ContentItem("rec_3", "Contenu Recommandé 3", imageUrl = "", imageRes = AppR.drawable.maat_class),
-            ContentItem("rec_4", "Contenu Recommandé 4", imageUrl = "", imageRes = AppR.drawable.maat_foot),
-            ContentItem("rec_5", "Contenu Recommandé 5", imageUrl = "", imageRes = AppR.drawable.maat_flix),
-            ContentItem("rec_6", "Contenu Recommandé 6", imageUrl = "", imageRes = AppR.drawable.maat_header)
+    val servicesSection = remember {
+        ContentSection(
+            "Nos services",
+            listOf(
+                ContentItem("maat_tv", "Maât.TV", imageUrl = "", imageRes = AppR.drawable.maat_tv),
+                ContentItem("maat_care", "MaâtCare", imageUrl = "", imageRes = AppR.drawable.maat_care),
+                ContentItem("maat_class", "MaâtClass", imageUrl = "", imageRes = AppR.drawable.maat_class),
+                ContentItem("maat_foot", "MaâtFoot", imageUrl = "", imageRes = AppR.drawable.maat_foot),
+                ContentItem("maat_flix", "MaâtFlix", imageUrl = "", imageRes = AppR.drawable.maat_flix)
+            )
         )
-    )
-    
-    val trendingSection = ContentSection(
-        "Tendances actuelles",
-        listOf(
-            ContentItem("trend_1", "Tendance 1", imageUrl = "", imageRes = AppR.drawable.maat_flix),
-            ContentItem("trend_2", "Tendance 2", imageUrl = "", imageRes = AppR.drawable.maat_foot),
-            ContentItem("trend_3", "Tendance 3", imageUrl = "", imageRes = AppR.drawable.maat_tv)
-        )
-    )
+    }
 
-    val allSections = listOf(servicesSection, recommendationsSection, trendingSection)
+    val recommendationsSection = remember {
+        ContentSection(
+            "Recommendations",
+            listOf(
+                ContentItem("rec_1", "Contenu Recommandé 1", imageUrl = "", imageRes = AppR.drawable.maat_tv),
+                ContentItem("rec_2", "Contenu Recommandé 2", imageUrl = "", imageRes = AppR.drawable.maat_care),
+                ContentItem("rec_3", "Contenu Recommandé 3", imageUrl = "", imageRes = AppR.drawable.maat_class),
+                ContentItem("rec_4", "Contenu Recommandé 4", imageUrl = "", imageRes = AppR.drawable.maat_foot),
+                ContentItem("rec_5", "Contenu Recommandé 5", imageUrl = "", imageRes = AppR.drawable.maat_flix),
+                ContentItem("rec_6", "Contenu Recommandé 6", imageUrl = "", imageRes = AppR.drawable.maat_header)
+            )
+        )
+    }
+
+    val trendingSection = remember {
+        ContentSection(
+            "Tendances actuelles",
+            listOf(
+                ContentItem("trend_1", "Tendance 1", imageUrl = "", imageRes = AppR.drawable.maat_flix),
+                ContentItem("trend_2", "Tendance 2", imageUrl = "", imageRes = AppR.drawable.maat_foot),
+                ContentItem("trend_3", "Tendance 3", imageUrl = "", imageRes = AppR.drawable.maat_tv)
+            )
+        )
+    }
+
+    val allSections = remember { listOf(servicesSection, recommendationsSection, trendingSection) }
 
     TvLazyColumn(
         modifier = modifier
@@ -380,7 +378,6 @@ fun TvMainContent(navController: NavController, modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Hero Section
         item {
             TvHeroSection(
                 modifier = Modifier
@@ -390,7 +387,6 @@ fun TvMainContent(navController: NavController, modifier: Modifier = Modifier) {
             )
         }
 
-        // Content Carousels
         items(allSections.size) { index ->
             val section = allSections[index]
             TvCarouselSection(
@@ -425,89 +421,81 @@ fun TvHeroSection(modifier: Modifier = Modifier) {
         modifier = modifier
             .focusRequester(heroFocusRequester)
             .focusable()
-            .onFocusChanged { focusState ->
-                isFocused = focusState.isFocused
-            }
+            .onFocusChanged { isFocused = it.isFocused }
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
-            .onPreviewKeyEvent { event ->
-                if (event.type == KeyEventType.KeyDown) {
-                    when (event.key) {
-                        Key.DirectionDown -> {
-                            focusManager.moveFocus(FocusDirection.Down)
-                            true
-                        }
-                        Key.DirectionUp -> {
-                            // Consume to prevent scrolling outside when already at top
-                            true
-                        }
-                        Key.DirectionCenter, Key.Enter -> {
-                            // Handle hero section click/activation
-                            Log.d("TvHeroSection", "Hero section activated")
-                            true
-                        }
-                        else -> false
-                    }
-                } else false
             }
             .clip(RoundedCornerShape(12.dp))
             .background(MaatColorGrisClair.copy(alpha = 0.2f)),
         contentAlignment = Alignment.BottomStart
     ) {
+        // Image principale
         Image(
             painter = painterResource(id = AppR.drawable.maat_header),
-            contentDescription = "Hero Image",
+            contentDescription = "Image Hero",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-        
+
+        // Gradient de lisibilité (plus haut et plus opaque)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                        startY = 500f
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.85f)
+                        ),
+                        startY = 200f
                     )
                 )
         )
-        
+
+        // Bloc texte avec padding et largeur limitée
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
+                .padding(start = 48.dp, bottom = 36.dp, end = 48.dp)
+                .widthIn(max = 540.dp) // Largeur max pour éviter d'aller trop à droite
         ) {
+            Text(
+                text = "",
+                color = Color(0xFFE5C28A), // Or pâle, pour contraste
+                fontSize = 44.sp,
+                fontWeight = FontWeight.ExtraBold,
+                lineHeight = 44.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Le réveil de la Maât",
                 color = Color.White,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(
+                        color = Color.Black.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Pour un monde de vérité, justice et d'harmonie.",
-                color = Color.White.copy(alpha = 0.9f),
+                color = Color.White.copy(alpha = 0.85f),
                 fontSize = 16.sp,
-                maxLines = 2
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+                    .background(
+                        color = Color.Black.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Focus indicator for hero section
-            if (isFocused) {
-                Box(
-                    modifier = Modifier
-                        .size(4.dp, 40.dp)
-                        .background(
-                            MaatColorOrangeSolaire,
-                            RoundedCornerShape(2.dp)
-                        )
-                )
-            }
         }
     }
 }
+
 
 @Preview(device = "id:tv_1080p")
 @Composable

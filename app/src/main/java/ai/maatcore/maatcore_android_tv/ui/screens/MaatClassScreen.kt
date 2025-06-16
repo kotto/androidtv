@@ -9,16 +9,22 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ai.maatcore.maatcore_android_tv.R
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorBleuCeruleen
+import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorOrSable
+import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorVertSante
 import ai.maatcore.maatcore_android_tv.ui.theme.MaatColorNoirProfond
 import ai.maatcore.maatcore_android_tv.ui.theme.PoppinsFamily
 import androidx.navigation.NavHostController
@@ -63,41 +69,66 @@ fun MaatClassScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaatColorNoirProfond)
-            .padding(24.dp)
+            .background(
+                brush = Brush.radialGradient(
+                    colors = listOf(MaatColorNoirProfond, MaatColorOrSable),
+                    center = Offset.Unspecified,
+                    radius = 300f
+                )
+            )
+            .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 48.dp)
     ) {
         Text(
-            text = "Maât.Class",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = PoppinsFamily,
-            color = MaatColorBleuCeruleen,
-            modifier = Modifier.padding(bottom = 24.dp)
+        text = "Maât.Class",
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold,
+        fontFamily = PoppinsFamily,
+        color = MaatColorVertSante,
+        modifier = Modifier.padding(bottom = 24.dp)
+    )
+
+    // Filters row
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(bottom = 24.dp)
+    ) {
+        FilterButton(
+            label = "Pays/Programme",
+            selectedValue = selectedCountry,
+            options = countries,
+            onSelected = { selectedCountry = it }
         )
+        FilterButton(
+            label = "Niveau",
+            selectedValue = selectedLevel,
+            options = levels,
+            onSelected = { selectedLevel = it }
+        )
+        FilterButton(
+            label = "Matière",
+            selectedValue = selectedSubject,
+            options = subjects,
+            onSelected = { selectedSubject = it }
+        )
+    }
 
-        // Filters row
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            FilterButton("Pays/Programme", selectedCountry, countries) { selectedCountry = it }
-            FilterButton("Niveau", selectedLevel, levels) { selectedLevel = it }
-            FilterButton("Matière", selectedSubject, subjects) { selectedSubject = it }
-        }
+    Spacer(modifier = Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Grid of courses 3 columns
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            items(filteredCourses) { course ->
-                CourseCard(course = course) {
-                    navController.navigate("course_detail/${course.id}")
-                }
+    // Grid of courses 3 columns
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.weight(1f)
+    ) {
+        items(filteredCourses) { course ->
+            CourseCard(course = course) {
+                navController.navigate("course_detail/${course.id}")
             }
         }
     }
+}
+
 }
 
 @Composable

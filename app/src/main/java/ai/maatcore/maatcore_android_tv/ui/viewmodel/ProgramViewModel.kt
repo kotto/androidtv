@@ -16,7 +16,12 @@ class ProgramViewModel @Inject constructor(private val repo: ProgramRepository):
 
     fun load() {
         viewModelScope.launch {
-            _programs.value = repo.getPrograms()
+            try {
+                _programs.value = repo.getPrograms()
+            } catch (e: Exception) {
+                // Handle error gracefully - keep empty list
+                _programs.value = emptyList()
+            }
         }
     }
 }

@@ -1,0 +1,26 @@
+{
+  "newDependencies": {
+    "axios": "^1.6.0",
+    "express-validator": "^7.0.1",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.32.6",
+    "node-cron": "^3.0.3",
+    "rss-parser": "^3.13.0",
+    "cheerio": "^1.0.0-rc.12",
+    "sanitize-html": "^2.11.0",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.1"
+  },
+  "newDevDependencies": {
+    "@types/multer": "^1.4.11",
+    "@types/node-cron": "^3.0.11",
+    "@types/sanitize-html": "^2.9.5",
+    "@types/uuid": "^9.0.7"
+  },
+  "scripts": {
+    "news:migrate": "npx prisma migrate deploy",
+    "news:generate": "npx prisma generate",
+    "news:seed": "npx ts-node prisma/seeds/news-seed.ts",
+    "news:setup": "npm run news:migrate && npm run news:generate && npm run news:seed"
+  }
+}

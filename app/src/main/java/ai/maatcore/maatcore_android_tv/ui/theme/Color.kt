@@ -16,6 +16,11 @@ val MaatColorVertSante = Color(0xFF46B17B)           // Accent MaâtCare
 val MaatColorJauneEnergie = Color(0xFFFFD23F)         // Accent MaâtFoot
 val MaatColorBleuCeruleen = Color(0xFF00A3FF)         // Accent MaâtClass
 
+// Maât.TV Specific Colors
+val MaatTvBlue = Color(0xFF1E3A8A)                   // Couleur principale Maât.TV
+val MaatGold = Color(0xFFFFD700)                     // Couleur dorée pour les accents
+val MaatRed = Color(0xFFDC2626)
+
 // Gradient Colors for Netflix UI (These are not the MaatCare specific animation colors)
 val MenuGradientStart = Color(0xFF0D0700)
 val MenuGradientEnd = Color(0xFF160A00)
@@ -27,6 +32,10 @@ val CardSectionGradientEnd = Color(0xFF250F00)
 val MaatColorViolet = Color(0xFF8A2BE2)    // Example: BlueViolet - CHOOSE YOUR ACTUAL COLOR
 val MaatColorRose = Color(0xFFFFC0CB)      // Example: Pink - CHOOSE YOUR ACTUAL COLOR
 val MaatColorBleuNuit = Color(0xFF191970)  // Example: MidnightBlue - CHOOSE YOUR ACTUAL COLOR
+
+// Added missing colors
+val MaatColorGrisMoyen = Color(0xFF888888) // Placeholder color
+val MaatColorGrisFonce = Color(0xFF444444) // Placeholder color
 
 // You can add more semantic color names here if needed, for example:
 // val Primary = MaatColorOrangeSolaire

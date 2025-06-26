@@ -6,6 +6,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Typography
 
+// Font Families are now defined in Fonts.kt
+// TODO: Ajouter la vraie police Poppins depuis Google Fonts
+
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(

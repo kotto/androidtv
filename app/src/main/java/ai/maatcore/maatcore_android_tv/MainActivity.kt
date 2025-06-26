@@ -15,7 +15,9 @@ import androidx.navigation.navArgument
 import ai.maatcore.maatcore_android_tv.ui.screens.*
 import ai.maatcore.maatcore_android_tv.ui.theme.AppTheme
 import kotlinx.coroutines.delay
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,9 +49,11 @@ fun TVAppNavigation() {
             navController = navController,
             startDestination = "netflix_home"
         ) {
-            // Écran d’accueil Netflix style
+            // Écran d'accueil principal Netflix-like
             composable("netflix_home") {
-                NetflixTvHomeScreen(navController = navController)
+                NetflixTvHomeScreen(
+                    navController = navController
+                )
             }
 
             composable("settings") {
@@ -62,6 +66,7 @@ fun TVAppNavigation() {
             composable("maatfoot")     { MaatFootScreen() }
             composable("maatclass")    { MaatClassScreen(navController) }
             composable("maattube")     { MaatTubeScreen(navController) }
+            composable("maatflix")     { MaatFlixScreen(navController) }
 
             // Détails cours / vidéo
             composable(

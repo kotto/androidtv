@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  backoffice-service:
+    build:
+      context: .
+      target: development
+    container_name: backoffice-service-dev
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/backoffice_db
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
+      - CORS_ORIGIN=http://localhost:3000,http://localhost:3001
+      - USER_SERVICE_URL=http://user-service:3000
+      - MAATTV_SERVICE_URL=http://maattv-service:3000
+      - MAATCLASS_SERVICE_URL=http://maatclass-service:3000
+      - MAATTUBE_SERVICE_URL=http://maattube-service:3000
+      - MAATCARE_SERVICE_URL=http://maatcare-service:3000
+      - N8N_API_URL=http://n8n:5678
+      - N8N_API_KEY=your-n8n-api-key
+      - UNREAL_ENGINE_API_URL=http://unreal-engine-service:8080
+      - AI_SERVICE_URL=http://ai-service:8000
+      - FACT_CHECK_API_URL=http://fact-check-service:8000
+      - LOG_LEVEL=debug
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backoffice-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "dist/healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: backoffice-postgres
+    environment:
+      - POSTGRES_DB=backoffice_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backoffice-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: backoffice-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backoffice-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Optional: Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: backoffice-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - redis
+    networks:
+      - backoffice-network
+    restart: unless-stopped
+
+  # Optional: pgAdmin for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: backoffice-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@backoffice.local
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    ports:
+      - "8083:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - backoffice-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  backoffice-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

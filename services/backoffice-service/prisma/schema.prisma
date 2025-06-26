@@ -1,0 +1,576 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// GESTION DES AVATARS IA
+// ============================================================================
+
+model Avatar {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        AvatarType
+  gender      Gender
+  ethnicity   String?
+  language    String   @default("fr")
+  
+  // Configuration visuelle
+  modelUrl    String?  // URL du modèle 3D
+  textureUrl  String?  // URL des textures
+  animationSet String? // Set d'animations disponibles
+  
+  // Configuration vocale
+  voiceId     String?  // ID de la voix synthétique
+  voiceProvider String? // Provider (ElevenLabs, Azure, etc.)
+  
+  // Métadonnées
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  outfits       AvatarOutfit[]
+  sessions      AvatarSession[]
+  contents      Content[]
+  broadcasts    NewsBroadcast[]
+  newsSchedules NewsSchedule[]
+  
+  @@map("avatars")
+}
+
+model AvatarOutfit {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  avatarId    String
+  
+  // Configuration de l'outfit
+  outfitData  Json     // Données de configuration de l'outfit
+  previewUrl  String?  // URL de prévisualisation
+  
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  avatar      Avatar   @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  
+  @@map("avatar_outfits")
+}
+
+model AvatarSession {
+  id          String   @id @default(cuid())
+  avatarId    String
+  sessionType SessionType
+  status      SessionStatus @default(IDLE)
+  
+  // Configuration de la session
+  currentScript String?
+  currentEmotion String?
+  currentPose String?
+  
+  // Métadonnées
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  metadata    Json?
+  
+  // Relations
+  avatar      Avatar   @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  
+  @@map("avatar_sessions")
+}
+
+// ============================================================================
+// STUDIOS VIRTUELS UNREAL ENGINE
+// ============================================================================
+
+model VirtualStudio {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  studioType  StudioType
+  
+  // Configuration Unreal Engine
+  unrealProjectPath String?
+  sceneAssetPath    String?
+  lightingPresetId  String?
+  
+  // Paramètres de rendu
+  renderSettings    Json?
+  cameraSettings    Json?
+  
+  // Métadonnées
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lightingPresets LightingPreset[]
+  contents        Content[]
+  
+  @@map("virtual_studios")
+}
+
+// ============================================================================
+// NEWS MODULE MODELS
+// ============================================================================
+
+enum NewsSourceType {
+  RSS_FEED
+  API_ENDPOINT
+  WEBHOOK
+  SOCIAL_MEDIA
+  PRESS_AGENCY
+  MANUAL
+}
+
+enum NewsCategory {
+  BREAKING_NEWS
+  POLITICS
+  ECONOMY
+  TECHNOLOGY
+  SCIENCE
+  HEALTH
+  SPORTS
+  ENTERTAINMENT
+  CULTURE
+  INTERNATIONAL
+  LOCAL
+  WEATHER
+  OTHER
+}
+
+enum NewsStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SCHEDULED
+  BROADCASTING
+  BROADCASTED
+  ARCHIVED
+}
+
+enum NewsPriority {
+  URGENT
+  HIGH
+  NORMAL
+  LOW
+}
+
+enum FactCheckStatus {
+  PENDING
+  VERIFIED
+  DISPUTED
+  FALSE
+  MIXED
+}
+
+enum BroadcastType {
+  LIVE
+  RECORDED
+  SCHEDULED
+}
+
+enum BroadcastStatus {
+  SCHEDULED
+  PREPARING
+  READY
+  BROADCASTING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model NewsSource {
+  id           String         @id @default(cuid())
+  name         String         @unique
+  description  String?
+  sourceType   NewsSourceType
+  n8nWorkflowId String?
+  webhookUrl   String?
+  apiEndpoint  String?
+  apiKey       String?
+  keywords     String[]
+  categories   NewsCategory[]
+  languages    String[]
+  priority     Int            @default(5) // 1-10, higher = more trusted
+  isActive     Boolean        @default(true)
+  lastSync     DateTime?
+  syncInterval Int?           @default(3600) // seconds
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relations
+  articles NewsArticle[]
+
+  @@index([sourceType])
+  @@index([isActive])
+  @@map("news_sources")
+}
+
+model NewsArticle {
+  id              String          @id @default(cuid())
+  sourceId        String
+  title           String
+  content         String          @db.Text
+  summary         String?
+  formattedText   String?         @db.Text // Formatted for TTS
+  originalUrl     String?
+  imageUrl        String?
+  category        NewsCategory
+  priority        NewsPriority    @default(NORMAL)
+  status          NewsStatus      @default(PENDING)
+  factCheckStatus FactCheckStatus @default(PENDING)
+  language        String          @default("fr")
+  duration        Int? // Estimated reading/TTS duration in seconds
+  publishedAt     DateTime
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  rejectionReason String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  source     NewsSource      @relation(fields: [sourceId], references: [id])
+  broadcasts NewsBroadcast[]
+
+  @@index([sourceId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([publishedAt])
+  @@index([createdAt])
+  @@map("news_articles")
+}
+
+model NewsBroadcast {
+  id            String          @id @default(cuid())
+  articleId     String
+  avatarId      String
+  broadcastType BroadcastType   @default(SCHEDULED)
+  status        BroadcastStatus @default(SCHEDULED)
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  endedAt       DateTime?
+  duration      Int? // Actual broadcast duration in seconds
+  viewCount     Int?            @default(0)
+  audioUrl      String? // Generated TTS audio
+  videoUrl      String? // Generated avatar video
+  thumbnailUrl  String?
+  metadata      Json? // Additional broadcast metadata
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  article NewsArticle @relation(fields: [articleId], references: [id])
+  avatar  Avatar      @relation(fields: [avatarId], references: [id])
+
+  @@index([articleId])
+  @@index([avatarId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("news_broadcasts")
+}
+
+model NewsSchedule {
+  id          String         @id @default(cuid())
+  avatarId    String
+  name        String
+  description String?
+  isActive    Boolean        @default(true)
+  timeSlots   Json // Array of time slots: [{day: 'monday', time: '08:00', duration: 300}]
+  categories  NewsCategory[] // Preferred categories for this schedule
+  priority    NewsPriority[] // Accepted priority levels
+  maxDuration Int?           @default(300) // Maximum duration in seconds
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  avatar Avatar @relation(fields: [avatarId], references: [id])
+
+  @@index([avatarId])
+  @@index([isActive])
+  @@map("news_schedules")
+}
+
+model LightingPreset {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  studioId    String
+  
+  // Configuration d'éclairage
+  lightingData Json    // Paramètres d'éclairage Unreal
+  previewUrl   String? // URL de prévisualisation
+  
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  studio      VirtualStudio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  
+  @@map("lighting_presets")
+}
+
+// ============================================================================
+// GESTION DES FLUX RSS ET CONTENU
+// ============================================================================
+
+model RSSFeed {
+  id          String   @id @default(cuid())
+  name        String
+  url         String   @unique
+  category    String?
+  language    String   @default("fr")
+  
+  // Configuration de vérification
+  checkInterval Int    @default(3600) // en secondes
+  lastChecked   DateTime?
+  lastSuccess   DateTime?
+  
+  // Paramètres de traitement IA
+  aiProcessing  Boolean @default(true)
+  factCheckEnabled Boolean @default(true)
+  
+  // Métadonnées
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  articles    RSSArticle[]
+  
+  @@map("rss_feeds")
+}
+
+model RSSArticle {
+  id          String   @id @default(cuid())
+  feedId      String
+  title       String
+  description String?
+  content     String?
+  url         String   @unique
+  
+  // Métadonnées de l'article
+  author      String?
+  publishedAt DateTime
+  categories  String[] // Array de catégories
+  
+  // Traitement IA
+  aiSummary   String?
+  factCheckStatus FactCheckStatus @default(PENDING)
+  factCheckResult Json?
+  credibilityScore Float?
+  
+  // Statut de publication
+  status      ArticleStatus @default(PENDING)
+  publishedToTV Boolean @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  feed        RSSFeed  @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  content     Content?
+  
+  @@map("rss_articles")
+}
+
+// ============================================================================
+// CONTENU UNIFIÉ
+// ============================================================================
+
+model Content {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  contentType ContentType
+  service     ServiceType // MaâtTV, MaâtCare, MaâtClass, etc.
+  
+  // Configuration de présentation
+  avatarId    String?
+  studioId    String?
+  outfitId    String?
+  
+  // Données du contenu
+  scriptContent String?
+  mediaUrls     String[] // URLs des médias associés
+  metadata      Json?
+  
+  // Paramètres de diffusion
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  status        ContentStatus @default(DRAFT)
+  
+  // Métadonnées
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?  // ID de l'utilisateur créateur
+  
+  // Relations
+  avatar      Avatar?        @relation(fields: [avatarId], references: [id])
+  studio      VirtualStudio? @relation(fields: [studioId], references: [id])
+  article     RSSArticle?    @relation(fields: [id], references: [id])
+  
+  @@map("contents")
+}
+
+// ============================================================================
+// WORKFLOWS ET AUTOMATISATION
+// ============================================================================
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  workflowType WorkflowType
+  
+  // Configuration n8n
+  n8nWorkflowId String?
+  n8nData       Json?
+  
+  // Paramètres d'exécution
+  isActive    Boolean  @default(true)
+  schedule    String?  // Cron expression
+  
+  // Métadonnées
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  executions  WorkflowExecution[]
+  
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String   @id @default(cuid())
+  workflowId  String
+  status      ExecutionStatus
+  
+  // Données d'exécution
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  errorMessage String?
+  result      Json?
+  
+  // Relations
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  @@map("workflow_executions")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum AvatarType {
+  NEWS_ANCHOR
+  DJ_MUSIC
+  HISTORIAN
+  SPORTS_COMMENTATOR
+  DOCTOR
+  TEACHER
+  GENERIC
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+}
+
+enum SessionType {
+  NEWS_READING
+  MUSIC_PRESENTATION
+  SPORTS_COMMENTARY
+  MEDICAL_CONSULTATION
+  EDUCATIONAL_CONTENT
+  IDLE
+}
+
+enum SessionStatus {
+  IDLE
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ERROR
+}
+
+enum StudioType {
+  NEWS_STUDIO
+  MUSIC_STUDIO
+  SPORTS_STUDIO
+  MEDICAL_OFFICE
+  CLASSROOM
+  GENERIC
+}
+
+enum FactCheckStatus {
+  PENDING
+  VERIFIED
+  DISPUTED
+  FALSE
+  MIXED
+  UNVERIFIABLE
+}
+
+enum ArticleStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentType {
+  NEWS_ARTICLE
+  MUSIC_TRACK
+  SPORTS_COMMENTARY
+  EDUCATIONAL_LESSON
+  MEDICAL_INFO
+  ENTERTAINMENT
+}
+
+enum ServiceType {
+  MAATTV
+  MAATCARE
+  MAATCLASS
+  MAATTUBE
+}
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum WorkflowType {
+  RSS_PROCESSING
+  CONTENT_GENERATION
+  FACT_CHECKING
+  AVATAR_AUTOMATION
+  STUDIO_MANAGEMENT
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
